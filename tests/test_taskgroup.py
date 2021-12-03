@@ -115,6 +115,7 @@ async def test_taskgroup_04():
 
 @pytest.mark.asyncio
 async def test_taskgroup_05():
+    """Child tasks are timely cancelled if their peers error out."""
 
     NUM = 0
     t2_cancel = False
@@ -161,200 +162,223 @@ async def test_taskgroup_05():
     assert runner_cancel
 
 
+@pytest.mark.asyncio
+async def test_taskgroup_06():
+    """Cancelling a task waiting on exiting the TG cancels all children."""
+
+    NUM = 0
+
+    async def foo():
+        nonlocal NUM
+        try:
+            await asyncio.sleep(5)
+        except asyncio.CancelledError:
+            NUM += 1
+            raise
+
+    async def runner():
+        async with taskgroup.TaskGroup() as g:
+            for _ in range(5):
+                g.create_task(foo())
+
+    r = create_task(runner())
+    await asyncio.sleep(0.1)
+
+    assert not r.done()
+    r.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await r
+
+    assert NUM == 5
+
+
+@pytest.mark.asyncio
+async def test_taskgroup_07():
+    """Cancelling a task waiting inside a task group cancels the children."""
+
+    NUM = 0
+
+    async def foo():
+        nonlocal NUM
+        try:
+            await asyncio.sleep(5)
+        except asyncio.CancelledError:
+            NUM += 1
+            raise
+
+    async def runner():
+        nonlocal NUM
+        async with taskgroup.TaskGroup() as g:
+            for _ in range(5):
+                g.create_task(foo())
+
+            try:
+                await asyncio.sleep(10)
+            except asyncio.CancelledError:
+                NUM += 10
+                raise
+
+    r = create_task(runner())
+    await asyncio.sleep(0.1)
+
+    assert not r.done()
+    r.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await r
+
+    assert NUM == 15
+
+
+@pytest.mark.asyncio
+async def test_taskgroup_08():
+    """Cancelling a TG does not propagate children exceptions."""
+
+    async def foo():
+        await asyncio.sleep(0.1)
+        1 / 0
+
+    async def runner():
+        async with taskgroup.TaskGroup() as g:
+            for _ in range(5):
+                g.create_task(foo())
+
+            try:
+                await asyncio.sleep(10)
+            except asyncio.CancelledError:
+                raise
+
+    r = create_task(runner())
+    await asyncio.sleep(0.1)
+
+    assert not r.done()
+    r.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await r
+
+
+@pytest.mark.asyncio
+async def test_taskgroup_09():
+    """Exceptions inside the TG async context manager cancel the children."""
+    t1 = t2 = None
+
+    async def foo1():
+        await asyncio.sleep(1)
+        return 42
+
+    async def foo2():
+        await asyncio.sleep(2)
+        return 11
+
+    async def runner():
+        nonlocal t1, t2
+        async with taskgroup.TaskGroup() as g:
+            t1 = g.create_task(foo1())
+            t2 = g.create_task(foo2())
+            await asyncio.sleep(0.1)
+            1 / 0
+
+    try:
+        await runner()
+    except taskgroup.TaskGroupError as t:
+        assert t.get_error_types() == {ZeroDivisionError}
+    else:
+        pytest.fail("TaskGroupError was not raised")
+
+    assert t1.cancelled()
+    assert t2.cancelled()
+
+
+@pytest.mark.asyncio
+async def test_taskgroup_10():
+    """Errors immediately in the TG cancel the children."""
+
+    t1 = t2 = None
+
+    async def foo1():
+        await asyncio.sleep(1)
+        return 42
+
+    async def foo2():
+        await asyncio.sleep(2)
+        return 11
+
+    async def runner():
+        nonlocal t1, t2
+        async with taskgroup.TaskGroup() as g:
+            t1 = g.create_task(foo1())
+            t2 = g.create_task(foo2())
+            1 / 0
+
+    try:
+        await runner()
+    except taskgroup.TaskGroupError as t:
+        assert t.get_error_types() == {ZeroDivisionError}
+    else:
+        pytest.fail("TaskGroupError was not raised")
+
+    assert t1.cancelled()
+    assert t2.cancelled()
+
+
+@pytest.mark.asyncio
+async def test_taskgroup_11():
+    """Nested task groups cancel properly."""
+
+    async def foo():
+        await asyncio.sleep(0.1)
+        1 / 0
+
+    async def runner():
+        async with taskgroup.TaskGroup():
+            async with taskgroup.TaskGroup() as g2:
+                for _ in range(5):
+                    g2.create_task(foo())
+
+                try:
+                    await asyncio.sleep(10)
+                except asyncio.CancelledError:
+                    raise
+
+    r = create_task(runner())
+    await asyncio.sleep(0.1)
+
+    assert not r.done()
+    r.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await r
+
+
+@pytest.mark.asyncio
+async def test_taskgroup_12():
+    """Cancellation in a child TG properly cancels children of the parent TG."""
+
+    async def foo():
+        await asyncio.sleep(0.1)
+        1 / 0
+
+    async def runner():
+        async with taskgroup.TaskGroup() as g1:
+            g1.create_task(asyncio.sleep(10))
+
+            async with taskgroup.TaskGroup() as g2:
+                for _ in range(5):
+                    g2.create_task(foo())
+
+                try:
+                    await asyncio.sleep(10)
+                except asyncio.CancelledError:
+                    raise
+
+    r = create_task(runner())
+    await asyncio.sleep(0.1)
+
+    assert not r.done()
+    r.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await r
+
+
 # class TestTaskGroup(tb.TestCase):
-#     async def test_taskgroup_06(self):
-
-#         NUM = 0
-
-#         async def foo():
-#             nonlocal NUM
-#             try:
-#                 await asyncio.sleep(5)
-#             except asyncio.CancelledError:
-#                 NUM += 1
-#                 raise
-
-#         async def runner():
-#             async with taskgroup.TaskGroup() as g:
-#                 for _ in range(5):
-#                     g.create_task(foo())
-
-#         r = self.loop.create_task(runner())
-#         await asyncio.sleep(0.1)
-
-#         self.assertFalse(r.done())
-#         r.cancel()
-#         with self.assertRaises(asyncio.CancelledError):
-#             await r
-
-#         self.assertEqual(NUM, 5)
-
-#     async def test_taskgroup_07(self):
-
-#         NUM = 0
-
-#         async def foo():
-#             nonlocal NUM
-#             try:
-#                 await asyncio.sleep(5)
-#             except asyncio.CancelledError:
-#                 NUM += 1
-#                 raise
-
-#         async def runner():
-#             nonlocal NUM
-#             async with taskgroup.TaskGroup() as g:
-#                 for _ in range(5):
-#                     g.create_task(foo())
-
-#                 try:
-#                     await asyncio.sleep(10)
-#                 except asyncio.CancelledError:
-#                     NUM += 10
-#                     raise
-
-#         r = self.loop.create_task(runner())
-#         await asyncio.sleep(0.1)
-
-#         self.assertFalse(r.done())
-#         r.cancel()
-#         with self.assertRaises(asyncio.CancelledError):
-#             await r
-
-#         self.assertEqual(NUM, 15)
-
-#     async def test_taskgroup_08(self):
-#         async def foo():
-#             await asyncio.sleep(0.1)
-#             1 / 0
-
-#         async def runner():
-#             async with taskgroup.TaskGroup() as g:
-#                 for _ in range(5):
-#                     g.create_task(foo())
-
-#                 try:
-#                     await asyncio.sleep(10)
-#                 except asyncio.CancelledError:
-#                     raise
-
-#         r = self.loop.create_task(runner())
-#         await asyncio.sleep(0.1)
-
-#         self.assertFalse(r.done())
-#         r.cancel()
-#         with self.assertRaises(asyncio.CancelledError):
-#             await r
-
-#     async def test_taskgroup_09(self):
-
-#         t1 = t2 = None
-
-#         async def foo1():
-#             await asyncio.sleep(1)
-#             return 42
-
-#         async def foo2():
-#             await asyncio.sleep(2)
-#             return 11
-
-#         async def runner():
-#             nonlocal t1, t2
-#             async with taskgroup.TaskGroup() as g:
-#                 t1 = g.create_task(foo1())
-#                 t2 = g.create_task(foo2())
-#                 await asyncio.sleep(0.1)
-#                 1 / 0
-
-#         try:
-#             await runner()
-#         except taskgroup.TaskGroupError as t:
-#             self.assertEqual(t.get_error_types(), {ZeroDivisionError})
-#         else:
-#             self.fail("TaskGroupError was not raised")
-
-#         self.assertTrue(t1.cancelled())
-#         self.assertTrue(t2.cancelled())
-
-#     async def test_taskgroup_10(self):
-
-#         t1 = t2 = None
-
-#         async def foo1():
-#             await asyncio.sleep(1)
-#             return 42
-
-#         async def foo2():
-#             await asyncio.sleep(2)
-#             return 11
-
-#         async def runner():
-#             nonlocal t1, t2
-#             async with taskgroup.TaskGroup() as g:
-#                 t1 = g.create_task(foo1())
-#                 t2 = g.create_task(foo2())
-#                 1 / 0
-
-#         try:
-#             await runner()
-#         except taskgroup.TaskGroupError as t:
-#             self.assertEqual(t.get_error_types(), {ZeroDivisionError})
-#         else:
-#             self.fail("TaskGroupError was not raised")
-
-#         self.assertTrue(t1.cancelled())
-#         self.assertTrue(t2.cancelled())
-
-#     async def test_taskgroup_11(self):
-#         async def foo():
-#             await asyncio.sleep(0.1)
-#             1 / 0
-
-#         async def runner():
-#             async with taskgroup.TaskGroup():
-#                 async with taskgroup.TaskGroup() as g2:
-#                     for _ in range(5):
-#                         g2.create_task(foo())
-
-#                     try:
-#                         await asyncio.sleep(10)
-#                     except asyncio.CancelledError:
-#                         raise
-
-#         r = self.loop.create_task(runner())
-#         await asyncio.sleep(0.1)
-
-#         self.assertFalse(r.done())
-#         r.cancel()
-#         with self.assertRaises(asyncio.CancelledError):
-#             await r
-
-#     async def test_taskgroup_12(self):
-#         async def foo():
-#             await asyncio.sleep(0.1)
-#             1 / 0
-
-#         async def runner():
-#             async with taskgroup.TaskGroup() as g1:
-#                 g1.create_task(asyncio.sleep(10))
-
-#                 async with taskgroup.TaskGroup() as g2:
-#                     for _ in range(5):
-#                         g2.create_task(foo())
-
-#                     try:
-#                         await asyncio.sleep(10)
-#                     except asyncio.CancelledError:
-#                         raise
-
-#         r = self.loop.create_task(runner())
-#         await asyncio.sleep(0.1)
-
-#         self.assertFalse(r.done())
-#         r.cancel()
-#         with self.assertRaises(asyncio.CancelledError):
-#             await r
-
 #     async def test_taskgroup_13(self):
 #         async def crash_after(t):
 #             await asyncio.sleep(t)
