@@ -59,10 +59,9 @@ Task Groups
 
         # The end of the `async with` block awaits the tasks, ensuring they are handled.
 
-The implementation has been borrowed from the `EdgeDB project`.
+The implementation has been borrowed from the EdgeDB project.
 
 .. _`Trio nurseries`: https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning
-.. _`EdgeDB project`: https://github.com/edgedb/edgedb
 
 Changelog
 ---------
