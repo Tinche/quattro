@@ -582,7 +582,7 @@ async def test_taskgroup_20():
         await runner()
 
 
-@pytest.mark.skip(msg="Asyncio limitation")
+@pytest.mark.skip(reason="Asyncio limitation")
 @pytest.mark.asyncio
 async def test_taskgroup_21():
     # This test doesn't work as asyncio, currently, doesn't
