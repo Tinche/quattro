@@ -19,4 +19,8 @@ dev = [
     "black",
     "flake8",
     "mypy",
+    "isort",
 ]
+
+[tool.isort]
+profile = "attrs"

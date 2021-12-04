@@ -1,7 +1,10 @@
 import asyncio
+
 from asyncio import create_task, get_running_loop
+from gc import collect
 
 import pytest
+
 from quattro import taskgroup
 
 
@@ -644,6 +647,8 @@ async def test_taskgroup_23():
             await asyncio.sleep(0.1)
             g.create_task(do_job(0.3))
             if count == 5:
+                collect()  # For PyPy
                 assert len(g._tasks) < 5
         await asyncio.sleep(1.35)
-        assert len(g._tasks) == 0
+        collect()  # For PyPy
+        assert not len(g._tasks)
