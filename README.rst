@@ -7,8 +7,8 @@ quattro: task control for asyncio
 .. image:: https://github.com/Tinche/quattro/workflows/CI/badge.svg
         :target: https://github.com/Tinche/quattro/actions?workflow=CI
 
-.. image:: https://codecov.io/gh/Tinche/quattro/branch/master/graph/badge.svg
-        :target: https://codecov.io/gh/Tinche/quattro
+.. image:: https://codecov.io/gh/Tinche/quattro/branch/main/graph/badge.svg?token=9IE6FHZV2K
+       :target: https://codecov.io/gh/Tinche/quattro
 
 .. image:: https://img.shields.io/pypi/pyversions/quattro.svg
         :target: https://github.com/Tinche/quattro
@@ -56,7 +56,7 @@ Task Groups
         async with TaskGroup() as tg:
             tg.start_soon(task_1)
             tg.start_soon(task_2)
-        
+
         # The end of the `async with` block awaits the tasks, ensuring they are handled.
 
 The implementation has been borrowed from the `EdgeDB project`.
