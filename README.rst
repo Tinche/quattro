@@ -1,6 +1,24 @@
 quattro: task control for asyncio
 =================================
 
+.. image:: https://img.shields.io/pypi/v/quattro.svg
+        :target: https://pypi.python.org/pypi/quattro
+
+.. image:: https://github.com/Tinche/quattro/workflows/CI/badge.svg
+        :target: https://github.com/Tinche/quattro/actions?workflow=CI
+
+.. image:: https://codecov.io/gh/Tinche/quattro/branch/master/graph/badge.svg
+        :target: https://codecov.io/gh/Tinche/quattro
+
+.. image:: https://img.shields.io/pypi/pyversions/quattro.svg
+        :target: https://github.com/Tinche/quattro
+        :alt: Supported Python versions
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+
+----
+
 **quattro** is an Apache 2 licensed library, written in Python, for task control
 in asyncio applications. `quattro` is influenced by structured concurrency
 concepts from the `Trio framework`_.
