@@ -15,6 +15,7 @@ readme = "README.rst"
 [project.optional-dependencies]
 dev = [
     "pytest-asyncio",
+    "coverage",
     "black",
     "flake8",
     "mypy",

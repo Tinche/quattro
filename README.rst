@@ -1,7 +1,7 @@
 quattro: task control for asyncio
 =================================
 
-*quattro** is an Apache 2 licensed library, written in Python, for task control
+**quattro** is an Apache 2 licensed library, written in Python, for task control
 in asyncio applications. `quattro` is influenced by structured concurrency
 concepts from the `Trio framework`_.
 
@@ -44,4 +44,18 @@ Task Groups
 The implementation has been borrowed from the `EdgeDB project`.
 
 .. _`Trio nurseries`: https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning
+.. _`EdgeDB project`: https://github.com/edgedb/edgedb
+
+Changelog
+---------
+
+0.1.0 (UNRELEASED)
+~~~~~~~~~~~~~~~~~~
+* Initial release, containing task groups.
+
+Credits
+-------
+
+The initial TaskGroup implementation has been taken from the `EdgeDB`_ project.
+
 .. _`EdgeDB`: https://github.com/edgedb/edgedb
