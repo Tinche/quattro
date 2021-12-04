@@ -1,22 +1,3 @@
-#
-# This source file is part of the EdgeDB open source project.
-#
-# Copyright 2016-present MagicStack Inc. and the EdgeDB authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
-
 from __future__ import annotations
 
 import asyncio
@@ -29,10 +10,9 @@ import weakref
 
 
 class TaskGroup:
-
     def __init__(self, *, name=None):
         if name is None:
-            self._name = f'tg-{_name_counter()}'
+            self._name = f"tg-{_name_counter()}"
         else:
             self._name = str(name)
 
@@ -52,24 +32,23 @@ class TaskGroup:
         return self._name
 
     def __repr__(self):
-        msg = f'<TaskGroup {self._name!r}'
+        msg = f"<TaskGroup {self._name!r}"
         if self._tasks:
-            msg += f' tasks:{len(self._tasks)}'
+            msg += f" tasks:{len(self._tasks)}"
         if self._unfinished_tasks:
-            msg += f' unfinished:{self._unfinished_tasks}'
+            msg += f" unfinished:{self._unfinished_tasks}"
         if self._errors:
-            msg += f' errors:{len(self._errors)}'
+            msg += f" errors:{len(self._errors)}"
         if self._aborting:
-            msg += ' cancelling'
+            msg += " cancelling"
         elif self._entered:
-            msg += ' entered'
-        msg += '>'
+            msg += " entered"
+        msg += ">"
         return msg
 
     async def __aenter__(self):
         if self._entered:
-            raise RuntimeError(
-                f"TaskGroup {self!r} has been already entered")
+            raise RuntimeError(f"TaskGroup {self!r} has been already entered")
         self._entered = True
 
         if self._loop is None:
@@ -77,8 +56,7 @@ class TaskGroup:
 
         self._parent_task = asyncio.current_task(self._loop)
         if self._parent_task is None:
-            raise RuntimeError(
-                f'TaskGroup {self!r} cannot determine the parent task')
+            raise RuntimeError(f"TaskGroup {self!r} cannot determine the parent task")
         self._patch_task(self._parent_task)
 
         return self
@@ -87,9 +65,7 @@ class TaskGroup:
         self._exiting = True
         propagate_cancellation_error = None
 
-        if (exc is not None and
-                self._is_base_error(exc) and
-                self._base_error is None):
+        if exc is not None and self._is_base_error(exc) and self._base_error is None:
             self._base_error = exc
 
         if et is asyncio.CancelledError:
@@ -165,8 +141,7 @@ class TaskGroup:
             errors = self._errors
             self._errors = None
 
-            me = TaskGroupError('unhandled errors in a TaskGroup',
-                                errors=errors)
+            me = TaskGroupError("unhandled errors in a TaskGroup", errors=errors)
             raise me from None
 
     def create_task(self, coro):
@@ -208,15 +183,18 @@ class TaskGroup:
         # We also need to be able to flip that flag.
 
         if sys.version_info >= (3, 9):
+
             def _task_cancel(self, msg=None):
                 self.__cancel_requested__ = True
                 return asyncio.Task.cancel(self, msg)
+
         else:
+
             def _task_cancel(self):
                 self.__cancel_requested__ = True
                 return asyncio.Task.cancel(self)
 
-        if hasattr(task, '__cancel_requested__'):
+        if hasattr(task, "__cancel_requested__"):
             return
 
         task.__cancel_requested__ = False
@@ -254,12 +232,14 @@ class TaskGroup:
         if self._parent_task.done():
             # Not sure if this case is possible, but we want to handle
             # it anyways.
-            self._loop.call_exception_handler({
-                'message': f'Task {task!r} has errored out but its parent '
-                           f'task {self._parent_task} is already completed',
-                'exception': exc,
-                'task': task,
-            })
+            self._loop.call_exception_handler(
+                {
+                    "message": f"Task {task!r} has errored out but its parent "
+                    f"task {self._parent_task} is already completed",
+                    "exception": exc,
+                    "task": task,
+                }
+            )
             return
 
         self._abort()
@@ -287,17 +267,16 @@ class TaskGroup:
 
 
 class MultiError(Exception):
-
     def __init__(self, msg, *args, errors=()):
         if errors:
             types = set(type(e).__name__ for e in errors)
             msg = f'{msg}; {len(errors)} sub errors: ({", ".join(types)})'
             for er in errors:
-                msg += f'\n + {type(er).__name__}: {er}'
+                msg += f"\n + {type(er).__name__}: {er}"
                 if er.__traceback__:
-                    er_tb = ''.join(traceback.format_tb(er.__traceback__))
-                    er_tb = textwrap.indent(er_tb, ' | ')
-                    msg += f'\n{er_tb}\n'
+                    er_tb = "".join(traceback.format_tb(er.__traceback__))
+                    er_tb = textwrap.indent(er_tb, " | ")
+                    msg += f"\n{er_tb}\n"
         super().__init__(msg, *args)
         self.__errors__ = tuple(errors)
 
@@ -305,7 +284,7 @@ class MultiError(Exception):
         return {type(e) for e in self.__errors__}
 
     def __reduce__(self):
-        return (type(self), (self.args,), {'__errors__': self.__errors__})
+        return (type(self), (self.args,), {"__errors__": self.__errors__})
 
 
 class TaskGroupError(MultiError):
