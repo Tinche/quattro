@@ -241,3 +241,19 @@ async def test_fail_after_move_deadline_to_past():
 
     spent = time() - start
     assert 0.1 <= spent <= 0.15
+
+
+@pytest.mark.asyncio
+async def test_fail_after_move_noop():
+    """Nothing bad happens if the deadline is moved by 0."""
+    start = time()
+    with pytest.raises(TimeoutError):
+        with fail_after(0.2) as cancel_scope:
+            await sleep(0.1)
+            cancel_scope.deadline += 0.0
+            await sleep(0.3)
+
+    spent = time() - start
+    assert 0.2 <= spent <= 0.205
+
+    await sleep(0.1)  # Any lingering errors

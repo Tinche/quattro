@@ -1,6 +1,6 @@
 import asyncio
 
-from asyncio import create_task, get_running_loop
+from asyncio import CancelledError, create_task, get_running_loop
 from gc import collect
 
 import pytest
@@ -652,3 +652,33 @@ async def test_taskgroup_23():
         await asyncio.sleep(1.35)
         collect()  # For PyPy
         assert not len(g._tasks)
+
+
+@pytest.mark.asyncio
+async def test_misc():
+    """Test misc edge cases, for coverage."""
+    name = "Test"
+
+    async def error():
+        1 / 0
+
+    with pytest.raises(taskgroup.TaskGroupError) as exc_info:
+        async with taskgroup.TaskGroup(name=name) as g:
+            assert g.get_name() == name
+
+            g.create_task(asyncio.sleep(0.1))
+
+            assert repr(g) == f"<TaskGroup '{name}' tasks:1 unfinished:1 entered>"
+            g.create_task(error())
+
+            try:
+                with pytest.raises(CancelledError):
+                    await asyncio.sleep(0.01)
+            finally:
+                assert (
+                    repr(g)
+                    == f"<TaskGroup '{name}' tasks:1 unfinished:1 errors:1 cancelling>"
+                )
+
+    assert AssertionError not in exc_info.value.get_error_types()
+    assert repr(g) == f"<TaskGroup '{name}' cancelling>"
