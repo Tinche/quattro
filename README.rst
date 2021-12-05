@@ -121,6 +121,7 @@ also be cancelled. In `quattro`, ``send_goodbye_msg()`` will run (and potentiall
 This is a limitation of the underlying framework.
 
 In `quattro`, cancellation scopes cannot be shielded.
+`quattro` doesn't support ``current_effective_deadline`` yet.
 
 .. _`Trio CancelScopes`: https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
 
