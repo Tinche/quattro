@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 from asyncio import CancelledError, create_task, get_running_loop
 from gc import collect
@@ -638,6 +639,7 @@ async def test_taskgroup_22():
 @pytest.mark.asyncio
 async def test_taskgroup_23():
     """Tasks progress in the background."""
+    collect()
 
     async def do_job(delay):
         await asyncio.sleep(delay)
@@ -675,10 +677,13 @@ async def test_misc():
                 with pytest.raises(CancelledError):
                     await asyncio.sleep(0.01)
             finally:
-                assert (
-                    repr(g)
-                    == f"<TaskGroup '{name}' tasks:1 unfinished:1 errors:1 cancelling>"
+                # On PyPy, the exception keeps the error task alive.
+                assert re.match(
+                    f"<TaskGroup '{name}' tasks:[1, 2] unfinished:1 errors:1 cancelling>",
+                    repr(g),
                 )
 
     assert AssertionError not in exc_info.value.get_error_types()
+    del exc_info  # To help PyPy
+    collect()  # For PyPy
     assert repr(g) == f"<TaskGroup '{name}' cancelling>"

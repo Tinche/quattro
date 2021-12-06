@@ -155,25 +155,9 @@ class TaskGroup:
         self._tasks.add(task)
         return task
 
-    if sys.version_info >= (3, 8):
-
-        # In Python 3.8 Tasks propagate all exceptions correctly,
-        # except for KeybaordInterrupt and SystemExit which are
-        # still considered special.
-
-        def _is_base_error(self, exc: BaseException) -> bool:
-            assert isinstance(exc, BaseException)
-            return isinstance(exc, (SystemExit, KeyboardInterrupt))
-
-    else:
-
-        # In Python prior to 3.8 all BaseExceptions are special and
-        # are bypassing the proper propagation through async/await
-        # code, essentially aborting the execution.
-
-        def _is_base_error(self, exc: BaseException) -> bool:
-            assert isinstance(exc, BaseException)
-            return not isinstance(exc, Exception)
+    def _is_base_error(self, exc: BaseException) -> bool:
+        assert isinstance(exc, BaseException)
+        return isinstance(exc, (SystemExit, KeyboardInterrupt))
 
     def _patch_task(self, task):
         # In Python 3.8 we'll need proper API on asyncio.Task to
