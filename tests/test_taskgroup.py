@@ -3,6 +3,7 @@ import re
 
 from asyncio import CancelledError, create_task, get_running_loop
 from gc import collect
+from pickle import dumps, loads
 
 import pytest
 
@@ -665,7 +666,21 @@ async def test_misc():
         1 / 0
 
     with pytest.raises(taskgroup.TaskGroupError) as exc_info:
-        async with taskgroup.TaskGroup(name=name) as g:
+        g = taskgroup.TaskGroup(name=name)
+
+        # TaskGroups cannot be used before entered.
+        with pytest.raises(RuntimeError):
+            temp = error()
+            g.create_task(temp)
+
+        # Clean this up for the warning.
+        with pytest.raises(ZeroDivisionError):
+            await temp
+
+        async with g:
+            with pytest.raises(RuntimeError):
+                async with g:
+                    pass
             assert g.get_name() == name
 
             g.create_task(asyncio.sleep(0.1))
@@ -687,3 +702,20 @@ async def test_misc():
     del exc_info  # To help PyPy
     collect()  # For PyPy
     assert repr(g) == f"<TaskGroup '{name}' cancelling>"
+
+
+@pytest.mark.asyncio
+async def test_taskgrouperror_pickling():
+    """TaskGroupErrors pickle properly."""
+
+    async def crash_soon():
+        await asyncio.sleep(0.1)
+        1 / 0
+
+    try:
+        async with taskgroup.TaskGroup() as g:
+            g.create_task(crash_soon())
+    except taskgroup.TaskGroupError as t:
+        assert repr(t) == repr(loads(dumps(t)))
+    else:
+        pytest.fail("TaskGroupError was not raised")

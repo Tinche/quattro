@@ -268,7 +268,7 @@ class MultiError(Exception):
         return {type(e) for e in self.__errors__}
 
     def __reduce__(self):
-        return (type(self), (self.args,), {"__errors__": self.__errors__})
+        return (type(self), self.args, {"__errors__": self.__errors__})
 
 
 class TaskGroupError(MultiError):
