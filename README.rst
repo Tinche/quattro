@@ -59,9 +59,21 @@ Task Groups
 
         # The end of the `async with` block awaits the tasks, ensuring they are handled.
 
+TaskGroups are essential building blocks for achieving the concept of `structured concurrency`_.
+In simple terms, structured concurrency means your code does not leak tasks - when a coroutine
+finishes, all tasks spawned by that coroutine and all its children are also finished.
+(In fancy terms, the execution flow becomes a directed acyclic graph.)
+
+Structured concurrency can be achieved by using TaskGroups instead of ``asyncio.create_task``
+to start background tasks. TaskGroups essentially do two things:
+
+* when exiting from a TaskGroup ``async with`` block, the TaskGroup awaits all of its children, ensuring they are finished when it exits
+* when a TaskGroup child task raises an exception, all other children and the task inside the context manager are cancelled
+
 The implementation has been borrowed from the EdgeDB project.
 
 .. _`Trio nurseries`: https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning
+.. _`structured concurrency`: https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
 
 Cancel Scopes
 -------------
