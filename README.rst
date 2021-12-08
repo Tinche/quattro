@@ -140,7 +140,7 @@ In `quattro`, cancellation scopes cannot be shielded.
 Changelog
 ---------
 
-0.1.0 (UNRELEASED)
+0.1.0 (2021-12-08)
 ~~~~~~~~~~~~~~~~~~
 * Initial release, containing task groups and cancellation scopes.
 
