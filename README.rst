@@ -10,10 +10,6 @@ quattro: task control for asyncio
 .. image:: https://codecov.io/gh/Tinche/quattro/branch/main/graph/badge.svg?token=9IE6FHZV2K
        :target: https://codecov.io/gh/Tinche/quattro
 
-.. image:: https://img.shields.io/pypi/pyversions/quattro.svg
-        :target: https://github.com/Tinche/quattro
-        :alt: Supported Python versions
-
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
