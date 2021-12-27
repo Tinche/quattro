@@ -1,3 +1,5 @@
+import sys
+
 from asyncio import TimeoutError, get_running_loop, sleep
 
 import pytest
@@ -42,6 +44,7 @@ async def test_nested_deadlines():
     assert get_current_effective_deadline() == float("inf")
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="requires python3.9 or higher")
 @pytest.mark.asyncio
 async def test_nested_deadlines_error():
     assert get_current_effective_deadline() == float("inf")
