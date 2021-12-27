@@ -74,8 +74,7 @@ The implementation has been borrowed from the EdgeDB project.
 Cancel Scopes
 -------------
 
-Cancel scopes are not supported on Python 3.8, since the necessary underlying
-asyncio machinery is not present on that version.
+Cancel scopes are not supported on Python 3.8, since the necessary underlying asyncio machinery is not present on that version.
 
 `quattro` contains an asyncio implementation of `Trio CancelScopes`_.
 Due to fundamental differences between asyncio and Trio the actual runtime behavior isn't
@@ -106,6 +105,8 @@ All helpers produce instances of ``quattro.CancelScope``, which is largely simil
 * ``deadline`` - read/write, an optional deadline for the scope, at which the scope will be cancelled
 * ``cancelled_caught`` - a readonly bool property, whether the scope finished via cancellation
 
+`quattro` also supports retrieving the current effective deadline in a task using ``quattro.current_effective_deadline``.
+The current effective deadline is a float value, with ``float('inf')`` standing in for no deadline.
 
 asyncio and Trio differences
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -129,12 +130,15 @@ also be cancelled. In `quattro`, ``send_goodbye_msg()`` will run (and potentiall
 This is a limitation of the underlying framework.
 
 In `quattro`, cancellation scopes cannot be shielded.
-`quattro` doesn't support ``current_effective_deadline`` yet.
 
 .. _`Trio CancelScopes`: https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts
 
 Changelog
 ---------
+
+0.2.0 (2021-12-27)
+~~~~~~~~~~~~~~~~~~
+* Add ``quattro.current_effective_deadline``.
 
 0.1.0 (2021-12-08)
 ~~~~~~~~~~~~~~~~~~

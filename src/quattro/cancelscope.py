@@ -8,7 +8,8 @@ from asyncio import (
     get_running_loop,
 )
 from contextlib import contextmanager
-from typing import ContextManager, Iterator, Optional, Union
+from contextvars import ContextVar
+from typing import ContextManager, Iterator, Optional, Tuple, Union
 
 from attr import define, field
 
@@ -43,6 +44,7 @@ class CancelScope:
 
     def __enter__(self) -> "CancelScope":
         self._current_task = current_task()
+        cancel_stack.set((self,) + cancel_stack.get())
         if self._cancel_called:
             # The scope was cancelled before entering.
             self._timeout_handler = get_running_loop().call_soon(self.__timeout_cb)
@@ -52,12 +54,13 @@ class CancelScope:
             )
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> Optional[bool]:
+    def __exit__(self, exc_type, exc_val, _) -> Optional[bool]:
         if self._timeout_handler is not None:
             self._timeout_handler.cancel()
             self._timeout_handler = None
 
         self._current_task = None
+        cancel_stack.set(cancel_stack.get()[1:])
 
         if exc_type is CancelledError and exc_val.args and exc_val.args[0] == id(self):
             self.cancelled_caught = True
@@ -67,6 +70,9 @@ class CancelScope:
     def __timeout_cb(self):
         if self._current_task is not None:
             self._current_task.cancel(id(self))
+
+
+cancel_stack = ContextVar[Tuple[CancelScope, ...]]("cancel_stack", default=())
 
 
 def move_on_after(seconds: float) -> CancelScope:
