@@ -147,7 +147,7 @@ class TaskGroup:
             me = TaskGroupError("unhandled errors in a TaskGroup", errors=errors)
             raise me from None
 
-    def create_task(self, coro: Coroutine[Any, Any, R]) -> Task[R]:
+    def create_task(self, coro: Coroutine[Any, Any, R]) -> "Task[R]":
         if self._exiting:
             raise RuntimeError(f"TaskGroup {self!r} is awaiting in exit")
         if self._loop is None:
