@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import asyncio
 import itertools
 import sys
@@ -8,27 +6,32 @@ import traceback
 import types
 import weakref
 
+from asyncio import AbstractEventLoop, Task
+from typing import Any, Coroutine, List, Optional, TypeVar
+
+
+R = TypeVar("R")
+
 
 class TaskGroup:
-    def __init__(self, *, name=None):
+    def __init__(self, *, name: Optional[str] = None):
         if name is None:
             self._name = f"tg-{_name_counter()}"
         else:
             self._name = str(name)
 
-        self._entered = False
         self._exiting = False
         self._aborting = False
-        self._loop = None
-        self._parent_task = None
+        self._loop: Optional[AbstractEventLoop] = None
+        self._parent_task: Optional[Task] = None
         self._parent_cancel_requested = False
-        self._tasks = weakref.WeakSet()
+        self._tasks: weakref.WeakSet[Task] = weakref.WeakSet()
         self._unfinished_tasks = 0
-        self._errors = []
+        self._errors: List[Exception] = []
         self._base_error = None
         self._on_completed_fut = None
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self._name
 
     def __repr__(self):
@@ -41,18 +44,16 @@ class TaskGroup:
             msg += f" errors:{len(self._errors)}"
         if self._aborting:
             msg += " cancelling"
-        elif self._entered:
+        elif self._loop is not None:
             msg += " entered"
         msg += ">"
         return msg
 
-    async def __aenter__(self):
-        if self._entered:
+    async def __aenter__(self) -> "TaskGroup":
+        if self._loop is not None:
             raise RuntimeError(f"TaskGroup {self!r} has been already entered")
-        self._entered = True
 
-        if self._loop is None:
-            self._loop = asyncio.get_running_loop()
+        self._loop = asyncio.get_running_loop()
 
         self._parent_task = asyncio.current_task(self._loop)
         if self._parent_task is None:
@@ -61,8 +62,10 @@ class TaskGroup:
 
         return self
 
-    async def __aexit__(self, et, exc, tb):
+    async def __aexit__(self, et, exc, _):
         self._exiting = True
+        loop = self._loop
+        self._loop = None
         propagate_cancellation_error = None
 
         if exc is not None and self._is_base_error(exc) and self._base_error is None:
@@ -100,7 +103,7 @@ class TaskGroup:
         # our own cancellation is already in progress)
         while self._unfinished_tasks:
             if self._on_completed_fut is None:
-                self._on_completed_fut = self._loop.create_future()
+                self._on_completed_fut = loop.create_future()
 
             try:
                 await self._on_completed_fut
@@ -144,11 +147,11 @@ class TaskGroup:
             me = TaskGroupError("unhandled errors in a TaskGroup", errors=errors)
             raise me from None
 
-    def create_task(self, coro):
-        if not self._entered:
-            raise RuntimeError(f"TaskGroup {self!r} has not been entered")
+    def create_task(self, coro: Coroutine[Any, Any, R]) -> Task[R]:
         if self._exiting:
             raise RuntimeError(f"TaskGroup {self!r} is awaiting in exit")
+        if self._loop is None:
+            raise RuntimeError(f"TaskGroup {self!r} has not been entered")
         task = self._loop.create_task(coro)
         task.add_done_callback(self._on_task_done)
         self._unfinished_tasks += 1

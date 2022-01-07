@@ -15,12 +15,12 @@ class MyExc(Exception):
 
 
 @pytest.mark.asyncio
-async def test_taskgroup_01():
-    async def foo1():
+async def test_taskgroup_01() -> None:
+    async def foo1() -> int:
         await asyncio.sleep(0.1)
         return 42
 
-    async def foo2():
+    async def foo2() -> int:
         await asyncio.sleep(0.2)
         return 11
 
