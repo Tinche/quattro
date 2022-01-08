@@ -136,7 +136,7 @@ In `quattro`, cancellation scopes cannot be shielded.
 Changelog
 ---------
 
-0.3.0 (UNRELEASED)
+0.3.0 (2022-01-08)
 ~~~~~~~~~~~~~~~~~~
 * Add `py.typed` to enable typing information.
 * Flesh out type annotations for TaskGroups.
