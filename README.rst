@@ -50,8 +50,8 @@ Task Groups
             ...
 
         async with TaskGroup() as tg:
-            tg.start_soon(task_1)
-            tg.start_soon(task_2)
+            t1 = tg.create_task(task_1)
+            t2 = tg.create_task(task_2)
 
         # The end of the `async with` block awaits the tasks, ensuring they are handled.
 
