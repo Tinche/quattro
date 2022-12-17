@@ -1,5 +1,6 @@
 import asyncio
 import re
+import sys
 
 from asyncio import CancelledError, create_task, get_running_loop
 from gc import collect
@@ -237,7 +238,8 @@ async def test_taskgroup_07():
 
 
 @pytest.mark.asyncio
-async def test_taskgroup_08():
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
+async def test_taskgroup_cancel_propagate_child_exc():
     """Cancelling a TG does not propagate children exceptions."""
 
     async def foo():
@@ -247,10 +249,12 @@ async def test_taskgroup_08():
 
     async def runner():
         async with taskgroup.TaskGroup() as g:
+            # Spawn 5 kids, all of which will sleep.
             for _ in range(5):
                 g.create_task(foo())
 
             try:
+                # Wait for us to be cancelled.
                 await asyncio.sleep(10)
             except asyncio.CancelledError:
                 raise
@@ -329,12 +333,12 @@ async def test_taskgroup_10():
 
 
 @pytest.mark.asyncio
-async def test_taskgroup_11():
+async def test_nested_taskgroups():
     """Nested task groups cancel properly."""
 
     async def foo():
-        await asyncio.sleep(0.1)
-        1 / 0
+        await asyncio.sleep(0.2)
+        1 / 0  # This will blow up the test, should not get here.
 
     async def runner():
         async with taskgroup.TaskGroup():
@@ -357,25 +361,22 @@ async def test_taskgroup_11():
 
 
 @pytest.mark.asyncio
-async def test_taskgroup_12():
+async def test_child_cancel_cancels_parent() -> None:
     """Cancellation in a child TG properly cancels children of the parent TG."""
 
     async def foo():
-        await asyncio.sleep(0.1)
-        1 / 0
+        await asyncio.sleep(0.2)
+        1 / 0  # Should not get here.
 
     async def runner():
         async with taskgroup.TaskGroup() as g1:
-            g1.create_task(asyncio.sleep(10))
+            g1.create_task(foo())
 
             async with taskgroup.TaskGroup() as g2:
                 for _ in range(5):
                     g2.create_task(foo())
 
-                try:
-                    await asyncio.sleep(10)
-                except asyncio.CancelledError:
-                    raise
+                await asyncio.sleep(10)  # Await our cancellation
 
     r = create_task(runner())
     await asyncio.sleep(0.1)
@@ -395,10 +396,10 @@ async def test_taskgroup_13():
         raise ValueError(t)
 
     async def runner():
-        async with taskgroup.TaskGroup(name="g1") as g1:
+        async with taskgroup.TaskGroup() as g1:
             g1.create_task(crash_after(0.1))
 
-            async with taskgroup.TaskGroup(name="g2") as g2:
+            async with taskgroup.TaskGroup() as g2:
                 g2.create_task(crash_after(0.2))
 
     r = create_task(runner())
@@ -418,10 +419,10 @@ async def test_taskgroup_14():
         raise ValueError(t)
 
     async def runner():
-        async with taskgroup.TaskGroup(name="g1") as g1:
+        async with taskgroup.TaskGroup() as g1:
             g1.create_task(crash_after(0.2))
 
-            async with taskgroup.TaskGroup(name="g2") as g2:
+            async with taskgroup.TaskGroup() as g2:
                 g2.create_task(crash_after(0.1))
 
     r = create_task(runner())
@@ -433,7 +434,8 @@ async def test_taskgroup_14():
 
 
 @pytest.mark.asyncio
-async def test_taskgroup_15():
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
+async def test_errors_in_children():
     """Errors in child tasks don't interfere with cancellation errors."""
 
     async def crash_soon():
@@ -441,11 +443,12 @@ async def test_taskgroup_15():
         1 / 0
 
     async def runner():
-        async with taskgroup.TaskGroup(name="g1") as g1:
+        async with taskgroup.TaskGroup() as g1:
             g1.create_task(crash_soon())
             try:
                 await asyncio.sleep(10)
             except asyncio.CancelledError:
+                # Wait a little longer for the child to error out.
                 await asyncio.sleep(0.5)
                 raise
 
@@ -459,7 +462,8 @@ async def test_taskgroup_15():
 
 
 @pytest.mark.asyncio
-async def test_taskgroup_16():
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
+async def test_errors_in_nested_tasks() -> None:
     """Errors in nested tasks don't interfere with cancellation errors."""
 
     async def crash_soon():
@@ -467,17 +471,17 @@ async def test_taskgroup_16():
         1 / 0
 
     async def nested_runner():
-        async with taskgroup.TaskGroup(name="g1") as g1:
+        async with taskgroup.TaskGroup() as g1:
             g1.create_task(crash_soon())
             try:
-                await asyncio.sleep(10)
+                await asyncio.sleep(10)  # Wait to be cancelled.
             except asyncio.CancelledError:
                 await asyncio.sleep(0.5)
                 raise
 
     async def runner():
         t = create_task(nested_runner())
-        await t
+        await t  # Being cancelled here will also cancel `t`
 
     r = create_task(runner())
     await asyncio.sleep(0.1)
@@ -669,13 +673,12 @@ async def test_taskgroup_23():
 @pytest.mark.asyncio
 async def test_misc():
     """Test misc edge cases, for coverage."""
-    name = "Test"
 
     async def error():
         1 / 0
 
     with pytest.raises(taskgroup.ExceptionGroup) as exc_info:
-        g = taskgroup.TaskGroup(name=name)
+        g = taskgroup.TaskGroup()
 
         # TaskGroups cannot be used before entered.
         with pytest.raises(RuntimeError):
@@ -690,11 +693,10 @@ async def test_misc():
             with pytest.raises(RuntimeError):
                 async with g:
                     pass
-            assert g.get_name() == name
 
             g.create_task(asyncio.sleep(0.1))
 
-            assert repr(g) == f"<TaskGroup '{name}' tasks:1 unfinished:1 entered>"
+            assert repr(g) == "<TaskGroup tasks=1 entered>"
             g.create_task(error())
 
             try:
@@ -703,14 +705,14 @@ async def test_misc():
             finally:
                 # On PyPy, the exception keeps the error task alive.
                 assert re.match(
-                    f"<TaskGroup '{name}' tasks:[1, 2] unfinished:1 errors:1 cancelling>",
+                    "<TaskGroup tasks=[1, 2] errors=1 cancelling>",
                     repr(g),
                 )
 
     assert AssertionError not in {type(e) for e in exc_info.value.exceptions}
     del exc_info  # To help PyPy
     collect()  # For PyPy
-    assert repr(g) == f"<TaskGroup '{name}' cancelling>"
+    assert repr(g) == "<TaskGroup cancelling>"
 
 
 @pytest.mark.asyncio

@@ -19,7 +19,7 @@ quattro: task control for asyncio
 in asyncio applications. `quattro` is influenced by structured concurrency
 concepts from the `Trio framework`_.
 
-`quattro` supports Python versions 3.8 - 3.10, and the 3.8 PyPy beta.
+`quattro` supports Python versions 3.9 - 3.11, including PyPy.
 
 .. _`Trio framework`: https://trio.readthedocs.io/en/stable/
 
@@ -34,6 +34,11 @@ To install `quattro`, simply:
 
 Task Groups
 -----------
+
+.. note:: On Python 3.11 and later, the `standard library TaskGroup`_ implementation is used instead.
+    The TaskGroup implementation here can be considered a backport for older Python versions.
+
+.. _`standard library TaskGroup`: https://docs.python.org/3/library/asyncio-task.html#task-groups
 
 `quattro` contains a TaskGroup implementation. TaskGroups are inspired by `Trio nurseries`_.
 
@@ -141,6 +146,7 @@ Changelog
 * Restore TaskGroup copyright notice.
 * Switch to ExceptionGroups (using the PyPI backport when necessary).
 * Add support for Python 3.11, drop 3.8.
+* `TaskGroup` no longer has a `name`, and the `repr` is slightly different, to harmonize with the Python 3.11 standard library implementation.
 
 0.3.0 (2022-01-08)
 ~~~~~~~~~~~~~~~~~~

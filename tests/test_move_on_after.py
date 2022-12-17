@@ -1,16 +1,9 @@
-import sys
-
 from asyncio import CancelledError, create_task, sleep
 from time import time
 
 import pytest
 
 from quattro import move_on_after
-
-
-pytestmark = pytest.mark.skipif(
-    sys.version_info < (3, 9), reason="requires python3.9 or higher"
-)
 
 
 @pytest.mark.asyncio
