@@ -7,7 +7,7 @@ from .cancelscope import (
     move_on_after,
     move_on_at,
 )
-from .taskgroup import TaskGroup, TaskGroupError
+from .taskgroup import TaskGroup
 
 
 def get_current_effective_deadline() -> float:

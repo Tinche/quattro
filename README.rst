@@ -136,9 +136,10 @@ In `quattro`, cancellation scopes cannot be shielded.
 Changelog
 ---------
 
-0.4.0 (UNRELEASED)
-~~~~~~~~~~~~~~~~~~
+22.1.0 (UNRELEASED)
+~~~~~~~~~~~~~~~~~~~
 * Restore TaskGroup copyright notice.
+* Switch to ExceptionGroups (using the PyPI backport when necessary).
 
 0.3.0 (2022-01-08)
 ~~~~~~~~~~~~~~~~~~

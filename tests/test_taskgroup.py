@@ -109,7 +109,8 @@ async def test_taskgroup_04():
         NUM += 10
 
     with pytest.raises(
-        taskgroup.TaskGroupError, match=r"1 sub errors: \(ZeroDivisionError\)"
+        taskgroup.ExceptionGroup,
+        match=r"unhandled errors in a TaskGroup \(1 sub-exception\)",
     ):
         await get_running_loop().create_task(runner())
 
@@ -158,7 +159,8 @@ async def test_taskgroup_05():
     # The 3 foo1 sub tasks can be racy when the host is busy - if the
     # cancellation happens in the middle, we'll see partial sub errors here
     with pytest.raises(
-        taskgroup.TaskGroupError, match=r"(1|2|3) sub errors: \(ZeroDivisionError\)"
+        taskgroup.ExceptionGroup,
+        match=r"unhandled errors in a TaskGroup \((1|2|3) sub-exceptions\)",
     ):
         await create_task(runner())
 
@@ -240,6 +242,7 @@ async def test_taskgroup_08():
 
     async def foo():
         await asyncio.sleep(0.1)
+        print("RAISING")
         1 / 0
 
     async def runner():
@@ -284,8 +287,8 @@ async def test_taskgroup_09():
 
     try:
         await runner()
-    except taskgroup.TaskGroupError as t:
-        assert t.get_error_types() == {ZeroDivisionError}
+    except taskgroup.ExceptionGroup as t:
+        assert {type(e) for e in t.exceptions} == {ZeroDivisionError}
     else:
         pytest.fail("TaskGroupError was not raised")
 
@@ -316,8 +319,8 @@ async def test_taskgroup_10():
 
     try:
         await runner()
-    except taskgroup.TaskGroupError as t:
-        assert t.get_error_types() == {ZeroDivisionError}
+    except taskgroup.ExceptionGroup as t:
+        assert {type(e) for e in t.exceptions} == {ZeroDivisionError}
     else:
         pytest.fail("TaskGroupError was not raised")
 
@@ -399,7 +402,10 @@ async def test_taskgroup_13():
                 g2.create_task(crash_after(0.2))
 
     r = create_task(runner())
-    with pytest.raises(taskgroup.TaskGroupError, match=r"1 sub errors"):
+    with pytest.raises(
+        taskgroup.ExceptionGroup,
+        match=r"unhandled errors in a TaskGroup \(1 sub-exception\)",
+    ):
         await r
 
 
@@ -419,7 +425,10 @@ async def test_taskgroup_14():
                 g2.create_task(crash_after(0.1))
 
     r = create_task(runner())
-    with pytest.raises(taskgroup.TaskGroupError, match=r"1 sub errors"):
+    with pytest.raises(
+        taskgroup.ExceptionGroup,
+        match=r"unhandled errors in a TaskGroup \(1 sub-exception\)",
+    ):
         await r
 
 
@@ -528,8 +537,8 @@ async def test_taskgroup_18():
 
     try:
         await r
-    except taskgroup.TaskGroupError as t:
-        assert t.get_error_types() == {MyExc}
+    except taskgroup.ExceptionGroup as t:
+        assert {type(e) for e in t.exceptions} == {MyExc}
     else:
         pytest.fail("TaskGroupError was not raised")
 
@@ -558,8 +567,8 @@ async def test_taskgroup_19():
     r = create_task(runner())
     try:
         await r
-    except taskgroup.TaskGroupError as t:
-        assert t.get_error_types() == {MyExc, ZeroDivisionError}
+    except taskgroup.ExceptionGroup as t:
+        assert {type(e) for e in t.exceptions} == {MyExc, ZeroDivisionError}
     else:
         pytest.fail("TaskGroupError was not raised")
 
@@ -665,7 +674,7 @@ async def test_misc():
     async def error():
         1 / 0
 
-    with pytest.raises(taskgroup.TaskGroupError) as exc_info:
+    with pytest.raises(taskgroup.ExceptionGroup) as exc_info:
         g = taskgroup.TaskGroup(name=name)
 
         # TaskGroups cannot be used before entered.
@@ -698,7 +707,7 @@ async def test_misc():
                     repr(g),
                 )
 
-    assert AssertionError not in exc_info.value.get_error_types()
+    assert AssertionError not in {type(e) for e in exc_info.value.exceptions}
     del exc_info  # To help PyPy
     collect()  # For PyPy
     assert repr(g) == f"<TaskGroup '{name}' cancelling>"
@@ -715,7 +724,7 @@ async def test_taskgrouperror_pickling():
     try:
         async with taskgroup.TaskGroup() as g:
             g.create_task(crash_soon())
-    except taskgroup.TaskGroupError as t:
+    except taskgroup.ExceptionGroup as t:
         assert repr(t) == repr(loads(dumps(t)))
     else:
         pytest.fail("TaskGroupError was not raised")
