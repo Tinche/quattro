@@ -24,3 +24,11 @@ dev = [
 
 [tool.isort]
 profile = "attrs"
+
+[[tool.mypy.overrides]]
+module = "asyncio.taskgroups"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "exceptiongroup"
+ignore_missing_imports = true

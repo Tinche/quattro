@@ -31,13 +31,13 @@ except ImportError:
     import types
     import weakref
 
-    from asyncio import AbstractEventLoop, Task
+    from asyncio import AbstractEventLoop, Future, Task
     from typing import Any, Coroutine, List, Optional, TypeVar
 
     R = TypeVar("R")
 
-    class TaskGroup:
-        def __init__(self):
+    class TaskGroup:  # type: ignore
+        def __init__(self) -> None:
             self._exiting = False
             self._aborting = False
             self._loop: Optional[AbstractEventLoop] = None
@@ -47,7 +47,7 @@ except ImportError:
             self._unfinished_tasks = 0
             self._errors: List[Exception] = []
             self._base_error = None
-            self._on_completed_fut = None
+            self._on_completed_fut: Optional[Future] = None
 
         def __repr__(self):
             msg = "<TaskGroup"
@@ -62,7 +62,7 @@ except ImportError:
             msg += ">"
             return msg
 
-        async def __aenter__(self) -> "TaskGroup":
+        async def __aenter__(self) -> "TaskGroup":  # type: ignore
             if self._loop is not None:
                 raise RuntimeError(f"TaskGroup {self!r} has been already entered")
 
@@ -75,11 +75,12 @@ except ImportError:
                 )
             self._patch_task(self._parent_task)
 
-            return self
+            return self  # type: ignore
 
-        async def __aexit__(self, et, exc, _):
+        async def __aexit__(self, et, exc, _) -> None:
             self._exiting = True
             loop = self._loop
+            assert loop is not None
             self._loop = None
             propagate_cancellation_error = None
 
@@ -94,7 +95,7 @@ except ImportError:
                 if self._parent_cancel_requested:
                     # Only if we did request task to cancel ourselves
                     # we mark it as no longer cancelled.
-                    self._parent_task.__cancel_requested__ = False
+                    self._parent_task.__cancel_requested__ = False  # type: ignore
                 else:
                     propagate_cancellation_error = et
 
@@ -161,7 +162,7 @@ except ImportError:
                 # cycles (bad for GC); let's not keep a reference to
                 # a bunch of them.
                 errors = self._errors
-                self._errors = None
+                self._errors = []
 
                 me = ExceptionGroup("unhandled errors in a TaskGroup", errors)
                 raise me from None
