@@ -1,3 +1,5 @@
+import sys
+
 from asyncio import (
     CancelledError,
     Handle,
@@ -9,9 +11,12 @@ from asyncio import (
 )
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import ContextManager, Iterator, Optional, Tuple, Union
+from typing import ContextManager, Final, Iterator, Optional, Tuple, Union
 
 from attr import define, field
+
+
+_is_311_or_later: Final = sys.version_info >= (3, 11)
 
 
 @define
@@ -29,47 +34,99 @@ class CancelScope:
             self._current_task.cancel(str(id(self)))
 
     @property
-    def deadline(self):
+    def deadline(self) -> Optional[float]:
         return self._deadline
 
     @deadline.setter
-    def deadline(self, value: Optional[float]):
+    def deadline(self, value: Optional[float]) -> None:
         if self._deadline == value:
             return
         self._deadline = value
         if self._timeout_handler is not None:
             self._timeout_handler.cancel()
+            self._timeout_handler = None
         if value is not None:
             self._timeout_handler = get_running_loop().call_at(value, self.__timeout_cb)
 
-    def __enter__(self) -> "CancelScope":
-        self._current_task = current_task()
-        cancel_stack.set((self,) + cancel_stack.get())
-        if self._cancel_called:
-            # The scope was cancelled before entering.
-            self._timeout_handler = get_running_loop().call_soon(self.__timeout_cb)
-        elif self._deadline is not None:
-            self._timeout_handler = get_running_loop().call_at(
-                self._deadline, self.__timeout_cb
-            )
-        return self
+    if _is_311_or_later:
 
-    def __exit__(self, exc_type, exc_val, _) -> Optional[bool]:
-        if self._timeout_handler is not None:
-            self._timeout_handler.cancel()
-            self._timeout_handler = None
+        def __enter__(self) -> "CancelScope":
+            self._current_task = current_task()
+            cancel_stack.set((self,) + cancel_stack.get())
+            if self._cancel_called:
+                # The scope was cancelled before entering.
+                self._timeout_handler = get_running_loop().call_soon(self.__timeout_cb)
+            elif self._deadline is not None:
+                loop = get_running_loop()
+                if self._deadline <= loop.time():
+                    # This is mostly a fix for sleep(0) :/
+                    self._timeout_handler = loop.call_soon(self.__timeout_cb)
+                else:
+                    self._timeout_handler = loop.call_at(
+                        self._deadline, self.__timeout_cb
+                    )
+            return self
 
-        self._current_task = None
-        cancel_stack.set(cancel_stack.get()[1:])
+        def __exit__(self, exc_type, exc_val, _) -> bool | None:
+            handler_done = True
+            if self._timeout_handler is not None:
+                # Means the timeout handler hasn't run yet.
+                handler_done = False
+                self._timeout_handler.cancel()
+                self._timeout_handler = None
+            elif self._deadline is None:
+                handler_done = False
 
-        if exc_type is CancelledError and exc_val.args and exc_val.args[0] == id(self):
-            self.cancelled_caught = True
-            return True
-        return None
+            assert self._current_task is not None
+            cancel_stack.set(cancel_stack.get()[1:])
+
+            ct = self._current_task
+            self._current_task = None
+            if ct.uncancel() == 0 and handler_done and exc_type is CancelledError:
+                self.cancelled_caught = True
+                return True
+            return None
+
+    else:
+
+        def __enter__(self) -> "CancelScope":
+            self._current_task = current_task()
+            cancel_stack.set((self,) + cancel_stack.get())
+            if self._cancel_called:
+                # The scope was cancelled before entering.
+                self._timeout_handler = get_running_loop().call_soon(self.__timeout_cb)
+            elif self._deadline is not None:
+                loop = get_running_loop()
+                if self._deadline <= loop.time():
+                    # This is mostly a fix for sleep(0) :/
+                    self._timeout_handler = loop.call_soon(self.__timeout_cb)
+                else:
+                    self._timeout_handler = loop.call_at(
+                        self._deadline, self.__timeout_cb
+                    )
+            return self
+
+        def __exit__(self, exc_type, exc_val, _) -> Optional[bool]:
+            if self._timeout_handler is not None:
+                self._timeout_handler.cancel()
+                self._timeout_handler = None
+
+            self._current_task = None
+            cancel_stack.set(cancel_stack.get()[1:])
+
+            if (
+                exc_type is CancelledError
+                and exc_val.args
+                and exc_val.args[0] == id(self)
+            ):
+                self.cancelled_caught = True
+                return True
+            return None
 
     def __timeout_cb(self):
         if self._current_task is not None:
             self._current_task.cancel(id(self))
+            self._timeout_handler = None
 
 
 cancel_stack = ContextVar[Tuple[CancelScope, ...]]("cancel_stack", default=())

@@ -6,7 +6,6 @@ import pytest
 from quattro import fail_after
 
 
-@pytest.mark.asyncio
 async def test_fail_after():
     start = time()
     t = 0.5
@@ -19,7 +18,6 @@ async def test_fail_after():
     assert t <= spent <= t + 0.01
 
 
-@pytest.mark.asyncio
 async def test_fail_after_not_triggered():
     start = time()
     with fail_after(0.2) as cancel_scope:
@@ -33,7 +31,6 @@ async def test_fail_after_not_triggered():
     await sleep(0.3)  # Sleep to possibly fail due to uncancelled timers
 
 
-@pytest.mark.asyncio
 async def test_fail_after_not_triggered_no_await():
     with fail_after(0.2) as cancel_scope:
         pass
@@ -41,8 +38,7 @@ async def test_fail_after_not_triggered_no_await():
     await sleep(0.3)
 
 
-@pytest.mark.asyncio
-async def test_fail_after_externally_cancelled():
+async def test_fail_after_externally_cancelled() -> None:
     cancel_scope = None
 
     async def task():
@@ -62,7 +58,6 @@ async def test_fail_after_externally_cancelled():
     assert not cancel_scope.cancelled_caught
 
 
-@pytest.mark.asyncio
 async def test_fail_after_inner_exception():
     cancel_scope = None
 
@@ -84,7 +79,6 @@ async def test_fail_after_inner_exception():
     await sleep(0.3)  # Catch lingering timers
 
 
-@pytest.mark.asyncio
 async def test_fail_after_nested_outer_shorter():
     """Nested fail_after blocks work properly."""
     checkpt_1 = 0
@@ -107,7 +101,6 @@ async def test_fail_after_nested_outer_shorter():
     assert not inner.cancelled_caught
 
 
-@pytest.mark.asyncio
 async def test_fail_after_nested_inner_shorter():
     """Nested fail_after blocks work properly."""
     checkpt_1 = 0
@@ -138,7 +131,6 @@ async def test_fail_after_nested_inner_shorter():
     assert inner.cancelled_caught
 
 
-@pytest.mark.asyncio
 async def test_fail_after_nested_happy():
     """Nested fail_after blocks work properly."""
     checkpt_1 = 0
@@ -160,7 +152,6 @@ async def test_fail_after_nested_happy():
     assert not inner.cancelled_caught
 
 
-@pytest.mark.asyncio
 async def test_fail_after_cancel_myself():
     async def task():
         with fail_after(0.5) as cancel_scope:
@@ -180,7 +171,6 @@ async def test_fail_after_cancel_myself():
 
 
 @pytest.mark.skip(reason="Not implemented yet")
-@pytest.mark.asyncio
 async def test_fail_after_precancel():
     cancel_scope = fail_after(0.5)
 
@@ -197,7 +187,6 @@ async def test_fail_after_precancel():
     await sleep(0.5)
 
 
-@pytest.mark.asyncio
 async def test_fail_after_move_deadline():
     start = time()
     with pytest.raises(TimeoutError):
@@ -211,7 +200,6 @@ async def test_fail_after_move_deadline():
     assert 0.2 <= spent <= 0.21
 
 
-@pytest.mark.asyncio
 async def test_fail_after_remove_deadline():
     start = time()
     with fail_after(0.2) as cancel_scope:
@@ -223,7 +211,6 @@ async def test_fail_after_remove_deadline():
     assert 0.4 <= spent <= 0.41
 
 
-@pytest.mark.asyncio
 async def test_fail_after_move_deadline_to_past():
     start = time()
     with pytest.raises(TimeoutError):
@@ -236,7 +223,6 @@ async def test_fail_after_move_deadline_to_past():
     assert 0.1 <= spent <= 0.15
 
 
-@pytest.mark.asyncio
 async def test_fail_after_move_noop():
     """Nothing bad happens if the deadline is moved by 0."""
     start = time()

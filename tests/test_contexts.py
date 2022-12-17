@@ -10,7 +10,6 @@ from quattro import (
 )
 
 
-@pytest.mark.asyncio
 async def test_effective_deadline():
     assert get_current_effective_deadline() == float("inf")
 
@@ -21,7 +20,6 @@ async def test_effective_deadline():
     assert get_current_effective_deadline() == float("inf")
 
 
-@pytest.mark.asyncio
 async def test_nested_deadlines():
     assert get_current_effective_deadline() == float("inf")
 
@@ -42,7 +40,6 @@ async def test_nested_deadlines():
     assert get_current_effective_deadline() == float("inf")
 
 
-@pytest.mark.asyncio
 async def test_nested_deadlines_error():
     assert get_current_effective_deadline() == float("inf")
 
@@ -65,7 +62,6 @@ async def test_nested_deadlines_error():
     assert get_current_effective_deadline() == float("inf")
 
 
-@pytest.mark.asyncio
 async def test_moved_nested_deadlines():
     assert get_current_effective_deadline() == float("inf")
 
@@ -94,7 +90,6 @@ async def test_moved_nested_deadlines():
     assert get_current_effective_deadline() == float("inf")
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_deadlines():
     assert get_current_effective_deadline() == float("inf")
 

@@ -15,7 +15,6 @@ class MyExc(Exception):
     pass
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_01() -> None:
     async def foo1() -> int:
         await asyncio.sleep(0.1)
@@ -33,7 +32,6 @@ async def test_taskgroup_01() -> None:
     assert t2.result() == 11
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_02():
     """Taskgroups handle tasks finishing before they finish properly."""
 
@@ -54,7 +52,6 @@ async def test_taskgroup_02():
     assert t2.result() == 11
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_03():
     """Task groups handle having their tasks cancelled."""
 
@@ -79,7 +76,6 @@ async def test_taskgroup_03():
     assert t2.result() == 11
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_04():
     """Task groups propagate child exceptions and cancel their children."""
 
@@ -120,7 +116,6 @@ async def test_taskgroup_04():
     assert t2.cancelled()
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_05():
     """Child tasks are timely cancelled if their peers error out."""
 
@@ -170,7 +165,6 @@ async def test_taskgroup_05():
     assert runner_cancel
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_06():
     """Cancelling a task waiting on exiting the TG cancels all children."""
 
@@ -200,7 +194,6 @@ async def test_taskgroup_06():
     assert NUM == 5
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_07():
     """Cancelling a task waiting inside a task group cancels the children."""
 
@@ -237,7 +230,6 @@ async def test_taskgroup_07():
     assert NUM == 15
 
 
-@pytest.mark.asyncio
 @pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
 async def test_taskgroup_cancel_propagate_child_exc():
     """Cancelling a TG does not propagate children exceptions."""
@@ -268,7 +260,6 @@ async def test_taskgroup_cancel_propagate_child_exc():
         await r
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_09():
     """Exceptions inside the TG async context manager cancel the children."""
     t1 = t2 = None
@@ -300,7 +291,6 @@ async def test_taskgroup_09():
     assert t2.cancelled()
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_10():
     """Errors immediately in the TG cancel the children."""
 
@@ -332,7 +322,6 @@ async def test_taskgroup_10():
     assert t2.cancelled()
 
 
-@pytest.mark.asyncio
 async def test_nested_taskgroups():
     """Nested task groups cancel properly."""
 
@@ -360,7 +349,6 @@ async def test_nested_taskgroups():
         await r
 
 
-@pytest.mark.asyncio
 async def test_child_cancel_cancels_parent() -> None:
     """Cancellation in a child TG properly cancels children of the parent TG."""
 
@@ -387,7 +375,6 @@ async def test_child_cancel_cancels_parent() -> None:
         await r
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_13():
     """An error in the parent TG cancels cleanup of the child TG."""
 
@@ -410,7 +397,6 @@ async def test_taskgroup_13():
         await r
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_14():
     """An error in the child TG raises the proper exception."""
 
@@ -433,7 +419,6 @@ async def test_taskgroup_14():
         await r
 
 
-@pytest.mark.asyncio
 @pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
 async def test_errors_in_children():
     """Errors in child tasks don't interfere with cancellation errors."""
@@ -461,7 +446,6 @@ async def test_errors_in_children():
         await r
 
 
-@pytest.mark.asyncio
 @pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
 async def test_errors_in_nested_tasks() -> None:
     """Errors in nested tasks don't interfere with cancellation errors."""
@@ -492,7 +476,6 @@ async def test_errors_in_nested_tasks() -> None:
         await r
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_17():
     """The TG main task is cancelled properly."""
     NUM = 0
@@ -517,7 +500,6 @@ async def test_taskgroup_17():
     assert NUM == 10
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_18():
     """Replacing CancelledError works."""
     NUM = 0
@@ -549,7 +531,6 @@ async def test_taskgroup_18():
     assert NUM == 10
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_19():
     """TaskGroupErrors combine subtask errors properly."""
 
@@ -577,7 +558,6 @@ async def test_taskgroup_19():
         pytest.fail("TaskGroupError was not raised")
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_20():
     """KeyboardInterrupt is handled properly."""
 
@@ -601,7 +581,6 @@ async def test_taskgroup_20():
 
 
 @pytest.mark.skip(reason="Asyncio limitation")
-@pytest.mark.asyncio
 async def test_taskgroup_21():
     # This test doesn't work as asyncio, currently, doesn't
     # know how to handle BaseExceptions.
@@ -625,7 +604,6 @@ async def test_taskgroup_21():
         await runner()
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_22():
     """Cancellation errors are propagated properly."""
 
@@ -650,7 +628,6 @@ async def test_taskgroup_22():
         await r
 
 
-@pytest.mark.asyncio
 async def test_taskgroup_23():
     """Tasks progress in the background."""
     collect()
@@ -670,7 +647,6 @@ async def test_taskgroup_23():
         assert not len(g._tasks)
 
 
-@pytest.mark.asyncio
 async def test_misc():
     """Test misc edge cases, for coverage."""
 
@@ -715,7 +691,6 @@ async def test_misc():
     assert repr(g) == "<TaskGroup cancelling>"
 
 
-@pytest.mark.asyncio
 async def test_taskgrouperror_pickling():
     """TaskGroupErrors pickle properly."""
 
