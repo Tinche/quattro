@@ -140,6 +140,7 @@ Changelog
 ~~~~~~~~~~~~~~~~~~~
 * Restore TaskGroup copyright notice.
 * Switch to ExceptionGroups (using the PyPI backport when necessary).
+* Add support for Python 3.11, drop 3.8.
 
 0.3.0 (2022-01-08)
 ~~~~~~~~~~~~~~~~~~
