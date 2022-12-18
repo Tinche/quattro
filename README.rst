@@ -116,7 +116,7 @@ The `quattro` ``failed_after`` and ``fail_at`` helpers are effectively equivalen
 
 The differences are:
 
-* The `quattro` versions are normal context managers (used with just ``with``), asyncio versions are async context managers (using with ``async with``).
+* The `quattro` versions are normal context managers (used with just ``with``), asyncio versions are async context managers (using ``async with``).
   Neither version needs to be async since nothing is awaited; `quattro` chooses to be non-async to signal there are no suspension points being hit, match Trio and be a little more readable.
 * `quattro` additionally contains the ``move_on_at`` and ``move_on_after`` helpers.
 * The `quattro` versions support getting the current effective deadline.
