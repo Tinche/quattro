@@ -131,7 +131,7 @@ async def test_fail_after_nested_inner_shorter():
     assert inner.cancelled_caught
 
 
-async def test_fail_after_nested_happy():
+async def test_fail_after_nested_happy() -> None:
     """Nested fail_after blocks work properly."""
     checkpt_1 = 0
     checkpt_2 = 0
@@ -144,7 +144,7 @@ async def test_fail_after_nested_happy():
         checkpt_3 = 1
 
     spent = time() - start
-    assert 0 <= spent <= 0.002
+    assert 0 <= spent <= 0.0022  # Add a little buffer for PyPy
     assert checkpt_1 == 1
     assert checkpt_2 == 1
     assert checkpt_3 == 1
