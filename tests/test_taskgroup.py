@@ -1,6 +1,5 @@
 import asyncio
 import re
-import sys
 
 from asyncio import CancelledError, create_task, get_running_loop
 from gc import collect
@@ -230,25 +229,26 @@ async def test_taskgroup_07():
     assert NUM == 15
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
-async def test_taskgroup_cancel_propagate_child_exc():
-    """Cancelling a TG does not propagate children exceptions."""
+async def test_taskgroup_cancel_propagate_child_exc() -> None:
+    """Cancelling a TG propagates children exceptions."""
 
-    async def foo():
-        await asyncio.sleep(0.1)
-        print("RAISING")
-        1 / 0
+    async def foo() -> None:
+        try:
+            await asyncio.sleep(0.1)
+        finally:
+            1 / 0
 
-    async def runner():
+    async def runner() -> None:
         async with taskgroup.TaskGroup() as g:
             # Spawn 5 kids, all of which will sleep.
             for _ in range(5):
                 g.create_task(foo())
 
+            # Wait for us to be cancelled.
             try:
-                # Wait for us to be cancelled.
                 await asyncio.sleep(10)
-            except asyncio.CancelledError:
+            except CancelledError:
+                await asyncio.sleep(0.1)
                 raise
 
     r = create_task(runner())
@@ -256,8 +256,10 @@ async def test_taskgroup_cancel_propagate_child_exc():
 
     assert not r.done()
     r.cancel()
-    with pytest.raises(asyncio.CancelledError):
+    with pytest.raises(taskgroup.ExceptionGroup) as exc:
         await r
+
+    assert [type(e) for e in exc.value.exceptions] == [ZeroDivisionError] * 5
 
 
 async def test_taskgroup_09():
@@ -419,13 +421,12 @@ async def test_taskgroup_14():
         await r
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
-async def test_errors_in_children():
-    """Errors in child tasks don't interfere with cancellation errors."""
+async def test_errors_in_children() -> None:
+    """Errors in children aren't suppressed."""
 
     async def crash_soon():
         await asyncio.sleep(0.3)
-        1 / 0
+        1 / 0  # This will bubble out of the taskgroup.
 
     async def runner():
         async with taskgroup.TaskGroup() as g1:
@@ -441,14 +442,15 @@ async def test_errors_in_children():
     await asyncio.sleep(0.1)
 
     assert not r.done()
-    r.cancel()
-    with pytest.raises(asyncio.CancelledError):
+    r.cancel()  # Cancel before the child errors.
+    with pytest.raises(taskgroup.ExceptionGroup) as exc:
         await r
 
+    assert [type(e) for e in exc.value.exceptions] == [ZeroDivisionError]
 
-@pytest.mark.skipif(sys.version_info >= (3, 11), reason="slight incompatibility")
+
 async def test_errors_in_nested_tasks() -> None:
-    """Errors in nested tasks don't interfere with cancellation errors."""
+    """Errors in nested tasks do interfere with cancellation errors."""
 
     async def crash_soon():
         await asyncio.sleep(0.3)
@@ -468,12 +470,14 @@ async def test_errors_in_nested_tasks() -> None:
         await t  # Being cancelled here will also cancel `t`
 
     r = create_task(runner())
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.1)  # The setup.
 
     assert not r.done()
     r.cancel()
-    with pytest.raises(asyncio.CancelledError):
+    with pytest.raises(taskgroup.ExceptionGroup) as exc:
         await r
+
+    assert [type(e) for e in exc.value.exceptions] == [ZeroDivisionError]
 
 
 async def test_taskgroup_17():
@@ -531,7 +535,7 @@ async def test_taskgroup_18():
     assert NUM == 10
 
 
-async def test_taskgroup_19():
+async def test_child_error_combining() -> None:
     """TaskGroupErrors combine subtask errors properly."""
 
     async def crash_soon():

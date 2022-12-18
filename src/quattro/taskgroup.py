@@ -32,6 +32,7 @@ except ImportError:
     import weakref
 
     from asyncio import AbstractEventLoop, Future, Task
+    from functools import partial
     from typing import Any, Coroutine, List, Optional, TypeVar
 
     R = TypeVar("R")
@@ -46,7 +47,7 @@ except ImportError:
             self._tasks: weakref.WeakSet[Task] = weakref.WeakSet()
             self._unfinished_tasks = 0
             self._errors: List[Exception] = []
-            self._base_error = None
+            self._base_error: Optional[BaseException] = None
             self._on_completed_fut: Optional[Future] = None
 
         def __repr__(self):
@@ -148,7 +149,7 @@ except ImportError:
             if self._base_error is not None:
                 raise self._base_error
 
-            if propagate_cancellation_error is not None:
+            if propagate_cancellation_error is not None and not self._errors:
                 # The wrapping task was cancelled; since we're done with
                 # closing all child tasks, just propagate the cancellation
                 # request now.
@@ -172,8 +173,13 @@ except ImportError:
                 raise RuntimeError(f"TaskGroup {self!r} is awaiting in exit")
             if self._loop is None:
                 raise RuntimeError(f"TaskGroup {self!r} has not been entered")
+            assert self._parent_task
             task = self._loop.create_task(coro)
-            task.add_done_callback(self._on_task_done)
+            task.add_done_callback(
+                partial(
+                    self._on_task_done, loop=self._loop, parent_task=self._parent_task
+                )
+            )
             self._unfinished_tasks += 1
             self._tasks.add(task)
             return task
@@ -209,12 +215,17 @@ except ImportError:
                 if not t.done():
                     t.cancel()
 
-        def _on_task_done(self, task):
+        def _on_task_done(
+            self, task: Task, loop: AbstractEventLoop, parent_task: Task
+        ) -> None:
             self._unfinished_tasks -= 1
             assert self._unfinished_tasks >= 0
 
             if self._exiting and not self._unfinished_tasks:
-                if not self._on_completed_fut.done():
+                if (
+                    self._on_completed_fut is not None
+                    and not self._on_completed_fut.done()
+                ):
                     self._on_completed_fut.set_result(True)
 
             if task.cancelled():
@@ -224,14 +235,14 @@ except ImportError:
             if exc is None:
                 return
 
-            self._errors.append(exc)
+            self._errors.append(exc)  # type: ignore
             if self._is_base_error(exc) and self._base_error is None:
                 self._base_error = exc
 
-            if self._parent_task.done():
+            if parent_task.done():
                 # Not sure if this case is possible, but we want to handle
                 # it anyways.
-                self._loop.call_exception_handler(
+                loop.call_exception_handler(
                     {
                         "message": f"Task {task!r} has errored out but its parent "
                         f"task {self._parent_task} is already completed",
@@ -242,7 +253,7 @@ except ImportError:
                 return
 
             self._abort()
-            if not self._parent_task.__cancel_requested__:
+            if not parent_task.__cancel_requested__:  # type: ignore
                 # If parent task *is not* being cancelled, it means that we want
                 # to manually cancel it to abort whatever is being run right now
                 # in the TaskGroup.  But we want to mark parent task as
@@ -262,4 +273,4 @@ except ImportError:
                 #        await something_else     # this line has to be called
                 #                                 # after TaskGroup is finished.
                 self._parent_cancel_requested = True
-                self._parent_task.cancel()
+                parent_task.cancel()

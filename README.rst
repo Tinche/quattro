@@ -155,9 +155,10 @@ Changelog
 22.1.0 (UNRELEASED)
 ~~~~~~~~~~~~~~~~~~~
 * Restore TaskGroup copyright notice.
-* Switch to ExceptionGroups (using the PyPI backport when necessary).
+* TaskGroups now raise ExceptionGroups (using the PyPI backport when necessary) on child errors.
 * Add support for Python 3.11, drop 3.8.
-* `TaskGroup` no longer has a `name`, and the `repr` is slightly different, to harmonize with the Python 3.11 standard library implementation.
+* TaskGroups no longer have a `name` and the `repr` is slightly different, to harmonize with the Python 3.11 standard library implementation.
+* TaskGroups no longer swallow child exceptions when aborting, to harmonize with the Python 3.11 standard library implementation.
 * Switch to CalVer.
 
 0.3.0 (2022-01-08)
