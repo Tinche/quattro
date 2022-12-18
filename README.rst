@@ -111,8 +111,8 @@ All helpers produce instances of ``quattro.CancelScope``, which is largely simil
 `quattro` also supports retrieving the current effective deadline in a task using ``quattro.current_effective_deadline``.
 The current effective deadline is a float value, with ``float('inf')`` standing in for no deadline.
 
-Python versions 3.11 and higher contain `similar helpers`_, `asyncio.timeout` and `asyncio.timeout_at`.
-The `quattro` ``failed_after`` and ``fail_at`` helpers are effectively equivalent to the asyncio timeouts, and pass the test suite for them.
+Python versions 3.11 and higher contain `similar helpers`_, ``asyncio.timeout`` and ``asyncio.timeout_at``.
+The `quattro` ``fail_after`` and ``fail_at`` helpers are effectively equivalent to the asyncio timeouts, and pass the test suite for them.
 
 The differences are:
 
