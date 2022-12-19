@@ -144,7 +144,7 @@ async def test_fail_after_nested_happy() -> None:
         checkpt_3 = 1
 
     spent = time() - start
-    assert 0 <= spent <= 0.0022  # Add a little buffer for PyPy
+    assert 0 <= spent <= 0.003  # Add a little buffer for PyPy
     assert checkpt_1 == 1
     assert checkpt_2 == 1
     assert checkpt_3 == 1

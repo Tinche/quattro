@@ -128,7 +128,7 @@ async def test_move_on_nested_happy():
             checkpt_2 = 1
         checkpt_3 = 1
 
-    assert start <= time() <= start + 0.002
+    assert start <= time() <= start + 0.003
     assert checkpt_1 == 1
     assert checkpt_2 == 1
     assert checkpt_3 == 1
