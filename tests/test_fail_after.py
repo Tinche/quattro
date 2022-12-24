@@ -244,7 +244,7 @@ async def test_fail_after_move_noop():
     await sleep(0.1)  # Any lingering errors
 
 
-@pytest.mark.skipif(not _is_311_or_later, "3.11+ only")
+@pytest.mark.skipif(not _is_311_or_later, reason="3.11+ only")
 async def test_fail_after_inner_unrelated_exc() -> None:
     """Nested scopes handle current task cancellation properly."""
     with pytest.raises(TimeoutError):

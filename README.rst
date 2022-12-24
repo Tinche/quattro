@@ -157,6 +157,8 @@ Changelog
 22.2.0 (UNRELEASED)
 ~~~~~~~~~~~~~~~~~~~
 * More robust nested cancellation on 3.11.
+* Better typing support for ``fail_after`` and ``fail_at``.
+* Improve effective deadline handling for pre-cancelled scopes.
 
 22.1.0 (2022-12-19)
 ~~~~~~~~~~~~~~~~~~~

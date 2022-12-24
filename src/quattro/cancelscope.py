@@ -37,11 +37,11 @@ class CancelScope:
             self._cancel_status = "prequeued"
             return
 
-        if self._cancel_status == "called":
+        if self._cancel_status == "called" or self._current_task == "done":
             # Already called, maybe by the timeout handler?
             return
         self._cancel_status = "called"
-        self._current_task.cancel(str(id(self)))
+        self._current_task.cancel(id(self))
         if self._timeout_handler is not None:
             self._timeout_handler.cancel()
             self._timeout_handler = None
@@ -96,6 +96,7 @@ class CancelScope:
                 self._timeout_handler = None
 
             assert self._current_task is not None
+            assert self._current_task != "done"
             cancel_stack.set(cancel_stack.get()[1:])
 
             ct = self._current_task
@@ -122,7 +123,10 @@ class CancelScope:
             cancel_stack.set((self,) + cancel_stack.get())
             if self._cancel_status == "prequeued":
                 # The scope was cancelled before entering.
+                if self._timeout_handler is not None:
+                    self._timeout_handler.cancel()
                 self._timeout_handler = get_running_loop().call_soon(self.__timeout_cb)
+                self._deadline = get_running_loop().time()
             elif self._deadline is not None:
                 loop = get_running_loop()
                 if self._deadline <= loop.time():
@@ -156,7 +160,7 @@ class CancelScope:
             return None
 
     def __timeout_cb(self) -> None:
-        if self._current_task is not None:
+        if self._current_task not in (None, "done"):
             self.cancel()
 
 

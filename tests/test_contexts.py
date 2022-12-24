@@ -41,6 +41,7 @@ async def test_nested_deadlines():
 
 
 async def test_nested_deadlines_error():
+    """Nesting move_on and fail_at produces correct deadlines."""
     assert get_current_effective_deadline() == float("inf")
 
     deadline = get_running_loop().time() + 1
