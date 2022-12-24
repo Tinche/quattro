@@ -151,7 +151,7 @@ async def test_move_on_cancel_myself():
     await sleep(0.5)
 
 
-async def test_move_on_precancel():
+async def test_move_on_precancel() -> None:
     cancel_scope = move_on_after(0.5)
 
     async def task():

@@ -116,3 +116,19 @@ async def test_taskgroup_deadlines():
                 assert get_current_effective_deadline() == deadline
 
             await tg.create_task(task())
+
+
+async def test_precancelled_deadline() -> None:
+    """If a cancel scope is precancelled, the deadline is correct."""
+    assert get_current_effective_deadline() == float("inf")
+
+    deadline = get_running_loop().time() + 10
+    scope = move_on_at(deadline)
+    scope.cancel()
+    assert get_current_effective_deadline() == float("inf")
+    with scope:
+        assert get_current_effective_deadline() <= get_running_loop().time()
+    assert get_current_effective_deadline() == float("inf")
+    # assert get_current_effective_deadline() == deadline
+
+    assert get_current_effective_deadline() == float("inf")
