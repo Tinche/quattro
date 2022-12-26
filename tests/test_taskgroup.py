@@ -2,6 +2,7 @@ import asyncio
 import re
 
 from asyncio import CancelledError, create_task, get_running_loop
+from contextvars import ContextVar, copy_context
 from gc import collect
 from pickle import dumps, loads
 
@@ -709,3 +710,21 @@ async def test_taskgrouperror_pickling():
         assert repr(t) == repr(loads(dumps(t)))
     else:
         pytest.fail("TaskGroupError was not raised")
+
+
+async def test_custom_contexts() -> None:
+    """TaskGroups honor custom task contexts."""
+    val: ContextVar[int] = ContextVar("val", default=5)
+
+    async def check_contextvar(expected: int) -> None:
+        assert val.get() == expected
+
+    async with taskgroup.TaskGroup() as g:
+        g.create_task(check_contextvar(5))
+
+    base = copy_context()
+    val.set(1)
+
+    async with taskgroup.TaskGroup() as g:
+        g.create_task(check_contextvar(1))
+        g.create_task(check_contextvar(5), context=base)

@@ -18,7 +18,7 @@ dev = [
     "coverage",
     "black",
     "flake8",
-    "mypy",
+    "mypy==0.991",
     "isort",
 ]
 

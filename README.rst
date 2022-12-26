@@ -159,6 +159,7 @@ Changelog
 * More robust nested cancellation on 3.11.
 * Better typing support for ``fail_after`` and ``fail_at``.
 * Improve effective deadline handling for pre-cancelled scopes.
+* TaskGroups now support custom ContextVar contexts when creating tasks, just like the standard library implementation.
 
 22.1.0 (2022-12-19)
 ~~~~~~~~~~~~~~~~~~~
