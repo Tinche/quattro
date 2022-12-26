@@ -180,7 +180,7 @@ except ImportError:
             if context is None:
                 task = self._loop.create_task(coro)
             else:
-                task = context.run(self._loop.create_task, coro)
+                task = context.run(self._loop.create_task, coro)  # type: ignore
             task.add_done_callback(
                 partial(
                     self._on_task_done, loop=self._loop, parent_task=self._parent_task
