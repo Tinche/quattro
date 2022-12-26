@@ -1,9 +1,16 @@
-from asyncio import CancelledError, TimeoutError, create_task, sleep
+from asyncio import (
+    CancelledError,
+    TimeoutError,
+    create_task,
+    current_task,
+    sleep,
+)
 from time import time
 
 import pytest
 
-from quattro import fail_after
+from quattro import CancelScope, fail_after
+from quattro.cancelscope import _is_311_or_later
 
 
 async def test_fail_after():
@@ -170,8 +177,7 @@ async def test_fail_after_cancel_myself():
     await sleep(0.5)
 
 
-@pytest.mark.skip(reason="Not implemented yet")
-async def test_fail_after_precancel():
+async def test_fail_after_precancel() -> None:
     cancel_scope = fail_after(0.5)
 
     async def task():
@@ -236,3 +242,24 @@ async def test_fail_after_move_noop():
     assert 0.2 <= spent <= 0.205
 
     await sleep(0.1)  # Any lingering errors
+
+
+@pytest.mark.skipif(not _is_311_or_later, reason="3.11+ only")
+async def test_fail_after_inner_unrelated_exc() -> None:
+    """Nested scopes handle current task cancellation properly."""
+    with pytest.raises(TimeoutError):
+        with CancelScope() as first:
+            first._raise_on_cancel = True
+            with fail_after(0.7) as second:
+                try:
+                    with fail_after(1) as third:
+                        second.cancel()
+                        first.cancel()
+                        raise ValueError()
+                except ValueError:
+                    assert not third.cancelled_caught
+                    await sleep(0.3)
+    assert not second.cancelled_caught
+    assert first.cancelled_caught
+    curr = current_task()
+    assert curr and curr.cancelling() == 0

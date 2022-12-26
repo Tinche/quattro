@@ -104,7 +104,8 @@ All helpers produce instances of ``quattro.CancelScope``, which is largely simil
 
 ``CancelScopes`` have the following attributes:
 
-* ``cancel()`` - a method through which the scope can be cancelled manually
+* ``cancel()`` - a method through which the scope can be cancelled manually.
+  ``cancel()`` can be called before the scope is entered; entering the scope will cancel it at the first opportunity
 * ``deadline`` - read/write, an optional deadline for the scope, at which the scope will be cancelled
 * ``cancelled_caught`` - a readonly bool property, whether the scope finished via cancellation
 
@@ -120,6 +121,7 @@ The differences are:
   Neither version needs to be async since nothing is awaited; `quattro` chooses to be non-async to signal there are no suspension points being hit, match Trio and be a little more readable.
 * `quattro` additionally contains the ``move_on_at`` and ``move_on_after`` helpers.
 * The `quattro` versions support getting the current effective deadline.
+* The `quattro` versions can be cancelled manually using ``scope.cancel()``, and precancelled before they are entered
 * The `quattro` versions are available on all supported Python versions, not just 3.11+.
 
 .. _`similar helpers`: https://docs.python.org/3/library/asyncio-task.html#timeouts
@@ -151,6 +153,12 @@ In `quattro`, cancellation scopes cannot be shielded.
 
 Changelog
 ---------
+
+22.2.0 (UNRELEASED)
+~~~~~~~~~~~~~~~~~~~
+* More robust nested cancellation on 3.11.
+* Better typing support for ``fail_after`` and ``fail_at``.
+* Improve effective deadline handling for pre-cancelled scopes.
 
 22.1.0 (2022-12-19)
 ~~~~~~~~~~~~~~~~~~~
