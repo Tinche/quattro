@@ -154,7 +154,7 @@ In `quattro`, cancellation scopes cannot be shielded.
 Changelog
 ---------
 
-22.2.0 (UNRELEASED)
+22.2.0 (2022-12-27)
 ~~~~~~~~~~~~~~~~~~~
 * More robust nested cancellation on 3.11.
 * Better typing support for ``fail_after`` and ``fail_at``.
