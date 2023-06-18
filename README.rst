@@ -7,8 +7,8 @@ quattro: task control for asyncio
 .. image:: https://github.com/Tinche/quattro/workflows/CI/badge.svg
         :target: https://github.com/Tinche/quattro/actions?workflow=CI
 
-.. image:: https://codecov.io/gh/Tinche/quattro/branch/main/graph/badge.svg?token=9IE6FHZV2K
-       :target: https://codecov.io/gh/Tinche/quattro
+.. image:: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Tinche/87277dd3077fb1eefebc5d4f71b4c4b7/raw/covbadge.json
+       :target: https://github.com/Tinche/quattro/actions/workflows/main.yml
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
@@ -153,6 +153,10 @@ In `quattro`, cancellation scopes cannot be shielded.
 
 Changelog
 ---------
+
+23.1.0 (UNRELEASED)
+~~~~~~~~~~~~~~~~~~~
+* Switch to [PDM](https://pdm.fming.dev/latest/).
 
 22.2.0 (2022-12-27)
 ~~~~~~~~~~~~~~~~~~~

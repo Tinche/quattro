@@ -1,6 +1,6 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "quattro"
@@ -9,16 +9,16 @@ classifiers = ["License :: OSI Approved :: Apache Software License"]
 dynamic = ["description"]
 version = "22.2.0"
 requires-python = ">=3.9"
-dependencies = ["exceptiongroup; python_version < '3.11'"]
+dependencies = ["attrs", "exceptiongroup; python_version < '3.11'"]
 readme = "README.rst"
 
-[project.optional-dependencies]
+[tool.pdm.dev-dependencies]
 dev = [
-    "pytest-asyncio==0.20.3",
+    "pytest-asyncio>=0.20.3",
     "coverage",
     "black",
     "flake8",
-    "mypy==0.991",
+    "mypy>=0.991",
     "isort",
 ]
 
@@ -35,3 +35,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.coverage.run]
+parallel = true
+source_pkgs = ["quattro"]
