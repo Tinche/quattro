@@ -10,7 +10,7 @@ dynamic = ["description"]
 version = "22.2.0"
 requires-python = ">=3.9"
 dependencies = ["attrs", "exceptiongroup; python_version < '3.11'"]
-readme = "README.rst"
+readme = "README.md"
 
 [tool.pdm.dev-dependencies]
 dev = [
