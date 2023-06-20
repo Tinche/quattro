@@ -16,6 +16,8 @@ readme = "README.md"
 dev = [
     "pytest-asyncio>=0.20.3",
     "coverage",
+]
+lint = [
     "black",
     "flake8",
     "mypy>=0.991",
