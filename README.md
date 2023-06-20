@@ -23,10 +23,8 @@ $ pip install quattro
 
 ## Task Groups
 
-:::{note}
 On Python 3.11 and later, the [standard library TaskGroup](https://docs.python.org/3/library/asyncio-task.html#task-groups) implementation is used instead.
 The TaskGroup implementation here can be considered a backport for older Python versions.
-:::
 
 _quattro_ contains a TaskGroup implementation. TaskGroups are inspired by [Trio nurseries](https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning).
 
