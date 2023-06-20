@@ -13,7 +13,7 @@ dependencies = ["attrs", "exceptiongroup; python_version < '3.11'"]
 readme = "README.md"
 
 [tool.pdm.dev-dependencies]
-dev = [
+test = [
     "pytest-asyncio>=0.20.3",
     "coverage",
 ]
