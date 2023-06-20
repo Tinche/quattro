@@ -10,7 +10,7 @@ from asyncio import (
     get_running_loop,
 )
 from contextvars import ContextVar
-from typing import Final, Literal, Optional, Tuple, Union
+from typing import Final, Literal, Optional, Union
 
 from attr import define, field
 
@@ -68,7 +68,7 @@ class CancelScope:
                 raise RuntimeError("Scope already entered")
 
             self._current_task = current_task()
-            cancel_stack.set((self,) + cancel_stack.get())
+            cancel_stack.set((self, *cancel_stack.get()))
             if self._cancel_status == "prequeued":
                 if self._timeout_handler is not None:
                     self._timeout_handler.cancel()
@@ -120,7 +120,7 @@ class CancelScope:
                 raise RuntimeError("Scope already entered")
 
             self._current_task = current_task()
-            cancel_stack.set((self,) + cancel_stack.get())
+            cancel_stack.set((self, *cancel_stack.get()))
             if self._cancel_status == "prequeued":
                 # The scope was cancelled before entering.
                 if self._timeout_handler is not None:
@@ -164,7 +164,7 @@ class CancelScope:
             self.cancel()
 
 
-cancel_stack = ContextVar[Tuple[CancelScope, ...]]("cancel_stack", default=())
+cancel_stack = ContextVar[tuple[CancelScope, ...]]("cancel_stack", default=())
 
 
 def move_on_after(seconds: float) -> CancelScope:
@@ -190,8 +190,8 @@ def fail_after(seconds: float) -> CancelScope:
     This function and move_on_after() are similar in that both create a cancel scope
     with a given timeout, and if the timeout expires then both will cause CancelledError
     to be raised within the scope. The difference is that when the CancelledError
-    exception reaches move_on_after(), it’s caught and discarded. When it reaches
-    fail_after(), then it’s caught and TimeoutError is raised in its place.
+    exception reaches move_on_after(), it's caught and discarded. When it reaches
+    fail_after(), then it's caught and TimeoutError is raised in its place.
     """
     return fail_at(get_running_loop().time() + seconds)
 
@@ -204,8 +204,8 @@ def fail_at(deadline: float) -> CancelScope:
     This function and move_on_at() are similar in that both create a cancel scope with
     a given absolute deadline, and if the deadline expires then both will cause
     CancelledError to be raised within the scope. The difference is that when the
-    CancelledError exception reaches move_on_at(), it’s caught and discarded. When it
-    reaches fail_at(), then it’s caught and TimeoutError is raised in its place.
+    CancelledError exception reaches move_on_at(), it's caught and discarded. When it
+    reaches fail_at(), then it's caught and TimeoutError is raised in its place.
     """
     scope = CancelScope(deadline)
     scope._raise_on_cancel = True

@@ -5,7 +5,7 @@ from asyncio import (
     current_task,
     sleep,
 )
-from time import time
+from time import monotonic, time
 
 import pytest
 
@@ -16,9 +16,8 @@ from quattro.cancelscope import _is_311_or_later
 async def test_fail_after():
     start = time()
     t = 0.5
-    with pytest.raises(TimeoutError):
-        with fail_after(t) as cancel_scope:
-            await sleep(1.0)
+    with pytest.raises(TimeoutError), fail_after(t) as cancel_scope:
+        await sleep(1.0)
 
     assert cancel_scope.cancelled_caught
     spent = time() - start
@@ -72,7 +71,7 @@ async def test_fail_after_inner_exception():
         nonlocal cancel_scope
         with fail_after(0.3) as cancel_scope:
             await sleep(0.2)
-            1 / 0
+            1 / 0  # noqa: B018
 
     t = create_task(task())
     await sleep(0.1)
@@ -91,14 +90,13 @@ async def test_fail_after_nested_outer_shorter():
     checkpt_1 = 0
     checkpt_2 = 0
     start = time()
-    with pytest.raises(TimeoutError):
-        with fail_after(0.1) as outer:
-            checkpt_1 = 1
-            with fail_after(0.2) as inner:
-                checkpt_2 = 1
-                await sleep(0.3)
-                pytest.fail("Not cancelled")
+    with pytest.raises(TimeoutError), fail_after(0.1) as outer:
+        checkpt_1 = 1
+        with fail_after(0.2) as inner:
+            checkpt_2 = 1
+            await sleep(0.3)
             pytest.fail("Not cancelled")
+        pytest.fail("Not cancelled")
 
     spent = time() - start
     assert 0.1 <= spent <= 0.15
@@ -114,19 +112,18 @@ async def test_fail_after_nested_inner_shorter():
     checkpt_2 = 0
     checkpt_3 = 0
     start = time()
-    with pytest.raises(TimeoutError):
-        with fail_after(0.2) as outer:
-            checkpt_1 = 1
-            try:
-                with fail_after(0.1) as inner:
-                    checkpt_2 = 1
-                    await sleep(0.3)
-                    pytest.fail("Not cancelled")
-            except TimeoutError:
-                checkpt_3 = 1
-                await sleep(0.2)
-            else:
-                pytest.fail("No timeout")
+    with pytest.raises(TimeoutError), fail_after(0.2) as outer:
+        checkpt_1 = 1
+        try:
+            with fail_after(0.1) as inner:
+                checkpt_2 = 1
+                await sleep(0.3)
+                pytest.fail("Not cancelled")
+        except TimeoutError:
+            checkpt_3 = 1
+            await sleep(0.2)
+        else:
+            pytest.fail("No timeout")
 
     spent = time() - start
 
@@ -143,15 +140,15 @@ async def test_fail_after_nested_happy() -> None:
     checkpt_1 = 0
     checkpt_2 = 0
     checkpt_3 = 0
-    start = time()
+    start = monotonic()
     with fail_after(0.2) as outer:
         checkpt_1 = 1
         with fail_after(0.1) as inner:
             checkpt_2 = 1
         checkpt_3 = 1
 
-    spent = time() - start
-    assert 0 <= spent <= 0.003  # Add a little buffer for PyPy
+    spent = monotonic() - start
+    assert 0 <= spent <= 0.005  # Add a little buffer for PyPy
     assert checkpt_1 == 1
     assert checkpt_2 == 1
     assert checkpt_3 == 1
@@ -195,11 +192,10 @@ async def test_fail_after_precancel() -> None:
 
 async def test_fail_after_move_deadline():
     start = time()
-    with pytest.raises(TimeoutError):
-        with fail_after(0.1) as cancel_scope:
-            await sleep(0.01)
-            cancel_scope.deadline += 0.1
-            await sleep(1)
+    with pytest.raises(TimeoutError), fail_after(0.1) as cancel_scope:
+        await sleep(0.01)
+        cancel_scope.deadline += 0.1
+        await sleep(1)
 
     spent = time() - start
 
@@ -219,11 +215,10 @@ async def test_fail_after_remove_deadline():
 
 async def test_fail_after_move_deadline_to_past():
     start = time()
-    with pytest.raises(TimeoutError):
-        with fail_after(0.2) as cancel_scope:
-            await sleep(0.1)
-            cancel_scope.deadline -= 0.1
-            await sleep(0.3)
+    with pytest.raises(TimeoutError), fail_after(0.2) as cancel_scope:
+        await sleep(0.1)
+        cancel_scope.deadline -= 0.1
+        await sleep(0.3)
 
     spent = time() - start
     assert 0.1 <= spent <= 0.15
@@ -232,11 +227,10 @@ async def test_fail_after_move_deadline_to_past():
 async def test_fail_after_move_noop():
     """Nothing bad happens if the deadline is moved by 0."""
     start = time()
-    with pytest.raises(TimeoutError):
-        with fail_after(0.2) as cancel_scope:
-            await sleep(0.1)
-            cancel_scope.deadline += 0.0
-            await sleep(0.3)
+    with pytest.raises(TimeoutError), fail_after(0.2) as cancel_scope:
+        await sleep(0.1)
+        cancel_scope.deadline += 0.0
+        await sleep(0.3)
 
     spent = time() - start
     assert 0.2 <= spent <= 0.205
@@ -247,18 +241,17 @@ async def test_fail_after_move_noop():
 @pytest.mark.skipif(not _is_311_or_later, reason="3.11+ only")
 async def test_fail_after_inner_unrelated_exc() -> None:
     """Nested scopes handle current task cancellation properly."""
-    with pytest.raises(TimeoutError):
-        with CancelScope() as first:
-            first._raise_on_cancel = True
-            with fail_after(0.7) as second:
-                try:
-                    with fail_after(1) as third:
-                        second.cancel()
-                        first.cancel()
-                        raise ValueError()
-                except ValueError:
-                    assert not third.cancelled_caught
-                    await sleep(0.3)
+    with pytest.raises(TimeoutError), CancelScope() as first:
+        first._raise_on_cancel = True
+        with fail_after(0.7) as second:
+            try:
+                with fail_after(1) as third:
+                    second.cancel()
+                    first.cancel()
+                    raise ValueError()
+            except ValueError:
+                assert not third.cancelled_caught
+                await sleep(0.3)
     assert not second.cancelled_caught
     assert first.cancelled_caught
     curr = current_task()

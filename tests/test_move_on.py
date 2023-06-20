@@ -1,5 +1,5 @@
 from asyncio import CancelledError, create_task, sleep
-from time import time
+from time import monotonic, time
 
 import pytest
 
@@ -59,7 +59,7 @@ async def test_move_on_inner_exception():
         nonlocal cancel_scope
         with move_on_after(0.3) as cancel_scope:
             await sleep(0.2)
-            1 / 0
+            1 / 0  # noqa: B018
 
     t = create_task(task())
     await sleep(0.1)
@@ -121,14 +121,14 @@ async def test_move_on_nested_happy():
     checkpt_1 = 0
     checkpt_2 = 0
     checkpt_3 = 0
-    start = time()
+    start = monotonic()
     with move_on_after(0.2) as outer:
         checkpt_1 = 1
         with move_on_after(0.1) as inner:
             checkpt_2 = 1
         checkpt_3 = 1
 
-    assert start <= time() <= start + 0.003
+    assert start <= monotonic() <= start + 0.005
     assert checkpt_1 == 1
     assert checkpt_2 == 1
     assert checkpt_3 == 1

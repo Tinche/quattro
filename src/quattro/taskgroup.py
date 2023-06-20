@@ -32,9 +32,10 @@ except ImportError:
     import weakref
 
     from asyncio import AbstractEventLoop, Future, Task
+    from collections.abc import Coroutine
     from contextvars import Context
     from functools import partial
-    from typing import Any, Coroutine, List, Optional, TypeVar
+    from typing import Any, Optional, TypeVar
 
     R = TypeVar("R")
 
@@ -47,7 +48,7 @@ except ImportError:
             self._parent_cancel_requested = False
             self._tasks: weakref.WeakSet[Task] = weakref.WeakSet()
             self._unfinished_tasks = 0
-            self._errors: List[Exception] = []
+            self._errors: list[Exception] = []
             self._base_error: Optional[BaseException] = None
             self._on_completed_fut: Optional[Future] = None
 
@@ -227,12 +228,15 @@ except ImportError:
             self._unfinished_tasks -= 1
             assert self._unfinished_tasks >= 0
 
-            if self._exiting and not self._unfinished_tasks:
-                if (
+            if (
+                self._exiting
+                and not self._unfinished_tasks
+                and (
                     self._on_completed_fut is not None
                     and not self._on_completed_fut.done()
-                ):
-                    self._on_completed_fut.set_result(True)
+                )
+            ):
+                self._on_completed_fut.set_result(True)
 
             if task.cancelled():
                 return

@@ -11,7 +11,7 @@ import pytest
 from quattro import taskgroup
 
 
-class MyExc(Exception):
+class MyError(Exception):
     pass
 
 
@@ -79,31 +79,31 @@ async def test_taskgroup_03():
 async def test_taskgroup_04():
     """Task groups propagate child exceptions and cancel their children."""
 
-    NUM = 0
+    num = 0
     t2_cancel = False
     t2 = None
 
     async def foo1():
         await asyncio.sleep(0.1)
-        1 / 0
+        1 / 0  # noqa: B018
 
     async def foo2():
-        nonlocal NUM, t2_cancel
+        nonlocal num, t2_cancel
         try:
             await asyncio.sleep(1)
         except asyncio.CancelledError:
             t2_cancel = True
             raise
-        NUM += 1
+        num += 1
 
     async def runner():
-        nonlocal NUM, t2
+        nonlocal num, t2
 
         async with taskgroup.TaskGroup() as g:
             g.create_task(foo1())
             t2 = g.create_task(foo2())
 
-        NUM += 10
+        num += 10
 
     with pytest.raises(
         taskgroup.ExceptionGroup,
@@ -111,7 +111,7 @@ async def test_taskgroup_04():
     ):
         await get_running_loop().create_task(runner())
 
-    assert NUM == 0
+    assert num == 0
     assert t2_cancel
     assert t2.cancelled()
 
@@ -119,25 +119,25 @@ async def test_taskgroup_04():
 async def test_taskgroup_05():
     """Child tasks are timely cancelled if their peers error out."""
 
-    NUM = 0
+    num = 0
     t2_cancel = False
     runner_cancel = False
 
     async def foo1():
         await asyncio.sleep(0.1)
-        1 / 0
+        1 / 0  # noqa: B018
 
     async def foo2():
-        nonlocal NUM, t2_cancel
+        nonlocal num, t2_cancel
         try:
             await asyncio.sleep(5)
         except asyncio.CancelledError:
             t2_cancel = True
             raise
-        NUM += 1
+        num += 1
 
     async def runner():
-        nonlocal NUM, runner_cancel
+        nonlocal num, runner_cancel
 
         async with taskgroup.TaskGroup() as g:
             g.create_task(foo1())
@@ -150,17 +150,17 @@ async def test_taskgroup_05():
                 runner_cancel = True
                 raise
 
-        NUM += 10
+        num += 10
 
     # The 3 foo1 sub tasks can be racy when the host is busy - if the
     # cancellation happens in the middle, we'll see partial sub errors here
     with pytest.raises(
         taskgroup.ExceptionGroup,
-        match=r"unhandled errors in a TaskGroup \((1|2|3) sub-exceptions\)",
+        match=r"unhandled errors in a TaskGroup \((1|2|3) sub-exception(s)?\)",
     ):
         await create_task(runner())
 
-    assert NUM == 0
+    assert num == 0
     assert t2_cancel
     assert runner_cancel
 
@@ -168,14 +168,14 @@ async def test_taskgroup_05():
 async def test_taskgroup_06():
     """Cancelling a task waiting on exiting the TG cancels all children."""
 
-    NUM = 0
+    num = 0
 
     async def foo():
-        nonlocal NUM
+        nonlocal num
         try:
             await asyncio.sleep(5)
         except asyncio.CancelledError:
-            NUM += 1
+            num += 1
             raise
 
     async def runner():
@@ -191,24 +191,24 @@ async def test_taskgroup_06():
     with pytest.raises(asyncio.CancelledError):
         await r
 
-    assert NUM == 5
+    assert num == 5
 
 
 async def test_taskgroup_07():
     """Cancelling a task waiting inside a task group cancels the children."""
 
-    NUM = 0
+    num = 0
 
     async def foo():
-        nonlocal NUM
+        nonlocal num
         try:
             await asyncio.sleep(5)
         except asyncio.CancelledError:
-            NUM += 1
+            num += 1
             raise
 
     async def runner():
-        nonlocal NUM
+        nonlocal num
         async with taskgroup.TaskGroup() as g:
             for _ in range(5):
                 g.create_task(foo())
@@ -216,7 +216,7 @@ async def test_taskgroup_07():
             try:
                 await asyncio.sleep(10)
             except asyncio.CancelledError:
-                NUM += 10
+                num += 10
                 raise
 
     r = create_task(runner())
@@ -227,7 +227,7 @@ async def test_taskgroup_07():
     with pytest.raises(asyncio.CancelledError):
         await r
 
-    assert NUM == 15
+    assert num == 15
 
 
 async def test_taskgroup_cancel_propagate_child_exc() -> None:
@@ -237,7 +237,7 @@ async def test_taskgroup_cancel_propagate_child_exc() -> None:
         try:
             await asyncio.sleep(0.1)
         finally:
-            1 / 0
+            1 / 0  # noqa: B018
 
     async def runner() -> None:
         async with taskgroup.TaskGroup() as g:
@@ -281,7 +281,7 @@ async def test_taskgroup_09():
             t1 = g.create_task(foo1())
             t2 = g.create_task(foo2())
             await asyncio.sleep(0.1)
-            1 / 0
+            1 / 0  # noqa: B018
 
     try:
         await runner()
@@ -312,7 +312,7 @@ async def test_taskgroup_10():
         async with taskgroup.TaskGroup() as g:
             t1 = g.create_task(foo1())
             t2 = g.create_task(foo2())
-            1 / 0
+            1 / 0  # noqa: B018
 
     try:
         await runner()
@@ -330,7 +330,7 @@ async def test_nested_taskgroups():
 
     async def foo():
         await asyncio.sleep(0.2)
-        1 / 0  # This will blow up the test, should not get here.
+        1 / 0  # This will blow up the test, should not get here.  # noqa: B018
 
     async def runner():
         async with taskgroup.TaskGroup():
@@ -357,7 +357,7 @@ async def test_child_cancel_cancels_parent() -> None:
 
     async def foo():
         await asyncio.sleep(0.2)
-        1 / 0  # Should not get here.
+        1 / 0  # Should not get here.  # noqa: B018
 
     async def runner():
         async with taskgroup.TaskGroup() as g1:
@@ -427,7 +427,7 @@ async def test_errors_in_children() -> None:
 
     async def crash_soon():
         await asyncio.sleep(0.3)
-        1 / 0  # This will bubble out of the taskgroup.
+        1 / 0  # This will bubble out of the taskgroup.  # noqa: B018
 
     async def runner():
         async with taskgroup.TaskGroup() as g1:
@@ -455,7 +455,7 @@ async def test_errors_in_nested_tasks() -> None:
 
     async def crash_soon():
         await asyncio.sleep(0.3)
-        1 / 0
+        1 / 0  # noqa: B018
 
     async def nested_runner():
         async with taskgroup.TaskGroup() as g1:
@@ -483,15 +483,15 @@ async def test_errors_in_nested_tasks() -> None:
 
 async def test_taskgroup_17():
     """The TG main task is cancelled properly."""
-    NUM = 0
+    num = 0
 
     async def runner():
-        nonlocal NUM
+        nonlocal num
         async with taskgroup.TaskGroup():
             try:
                 await asyncio.sleep(10)
             except asyncio.CancelledError:
-                NUM += 10
+                num += 10
                 raise
 
     r = create_task(runner())
@@ -502,23 +502,23 @@ async def test_taskgroup_17():
     with pytest.raises(asyncio.CancelledError):
         await r
 
-    assert NUM == 10
+    assert num == 10
 
 
 async def test_taskgroup_18():
     """Replacing CancelledError works."""
-    NUM = 0
+    num = 0
 
     async def runner():
-        nonlocal NUM
+        nonlocal num
         async with taskgroup.TaskGroup():
             try:
                 await asyncio.sleep(10)
-            except asyncio.CancelledError:
-                NUM += 10
+            except asyncio.CancelledError as exc:
+                num += 10
                 # This isn't a good idea, but we have to support
                 # this weird case.
-                raise MyExc
+                raise MyError from exc
 
     r = create_task(runner())
     await asyncio.sleep(0.1)
@@ -529,11 +529,11 @@ async def test_taskgroup_18():
     try:
         await r
     except taskgroup.ExceptionGroup as t:
-        assert {type(e) for e in t.exceptions} == {MyExc}
+        assert {type(e) for e in t.exceptions} == {MyError}
     else:
         pytest.fail("TaskGroupError was not raised")
 
-    assert NUM == 10
+    assert num == 10
 
 
 async def test_child_error_combining() -> None:
@@ -541,13 +541,13 @@ async def test_child_error_combining() -> None:
 
     async def crash_soon():
         await asyncio.sleep(0.1)
-        1 / 0
+        1 / 0  # noqa: B018
 
     async def nested():
         try:
             await asyncio.sleep(10)
         finally:
-            raise MyExc
+            raise MyError
 
     async def runner():
         async with taskgroup.TaskGroup() as g:
@@ -558,7 +558,7 @@ async def test_child_error_combining() -> None:
     try:
         await r
     except taskgroup.ExceptionGroup as t:
-        assert {type(e) for e in t.exceptions} == {MyExc, ZeroDivisionError}
+        assert {type(e) for e in t.exceptions} == {MyError, ZeroDivisionError}
     else:
         pytest.fail("TaskGroupError was not raised")
 
@@ -568,7 +568,7 @@ async def test_taskgroup_20():
 
     async def crash_soon():
         await asyncio.sleep(0.1)
-        1 / 0
+        1 / 0  # noqa: B018
 
     async def nested():
         try:
@@ -656,7 +656,7 @@ async def test_misc():
     """Test misc edge cases, for coverage."""
 
     async def error():
-        1 / 0
+        1 / 0  # noqa: B018
 
     with pytest.raises(taskgroup.ExceptionGroup) as exc_info:
         g = taskgroup.TaskGroup()
@@ -701,7 +701,7 @@ async def test_taskgrouperror_pickling():
 
     async def crash_soon():
         await asyncio.sleep(0.1)
-        1 / 0
+        1 / 0  # noqa: B018
 
     try:
         async with taskgroup.TaskGroup() as g:

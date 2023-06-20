@@ -49,10 +49,9 @@ async def test_nested_deadlines_error():
         assert get_current_effective_deadline() == deadline
 
         fail_deadline = deadline - 0.7
-        with pytest.raises(TimeoutError):
-            with fail_at(fail_deadline):
-                assert get_current_effective_deadline() == fail_deadline
-                await sleep(1.0)
+        with pytest.raises(TimeoutError), fail_at(fail_deadline):
+            assert get_current_effective_deadline() == fail_deadline
+            await sleep(1.0)
 
         assert get_current_effective_deadline() == deadline
 
