@@ -19,7 +19,6 @@ test = [
 lint = [
     "black",
     "mypy>=0.991",
-    "isort>=5.12.0",
     "ruff>=0.0.272",
 ]
 
@@ -62,6 +61,7 @@ select = [
     "PLC", # Pylint
     "PIE", # flake8-pie
     "RUF", # ruff
+    "I",   # isort
 ]
 ignore = [
     "S101",   # assert

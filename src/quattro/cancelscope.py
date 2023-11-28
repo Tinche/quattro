@@ -1,5 +1,4 @@
 import sys
-
 from asyncio import (
     CancelledError,
     Handle,
@@ -13,7 +12,6 @@ from contextvars import ContextVar
 from typing import Final, Literal, Optional, Union
 
 from attr import define, field
-
 
 _is_311_or_later: Final = sys.version_info >= (3, 11)
 

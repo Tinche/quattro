@@ -1,6 +1,5 @@
 import asyncio
 import re
-
 from asyncio import CancelledError, create_task, get_running_loop
 from contextvars import ContextVar, copy_context
 from gc import collect
@@ -333,15 +332,14 @@ async def test_nested_taskgroups():
         1 / 0  # This will blow up the test, should not get here.  # noqa: B018
 
     async def runner():
-        async with taskgroup.TaskGroup():
-            async with taskgroup.TaskGroup() as g2:
-                for _ in range(5):
-                    g2.create_task(foo())
+        async with taskgroup.TaskGroup(), taskgroup.TaskGroup() as g2:
+            for _ in range(5):
+                g2.create_task(foo())
 
-                try:
-                    await asyncio.sleep(10)
-                except asyncio.CancelledError:
-                    raise
+            try:
+                await asyncio.sleep(10)
+            except asyncio.CancelledError:
+                raise
 
     r = create_task(runner())
     await asyncio.sleep(0.1)
