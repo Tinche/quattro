@@ -165,6 +165,10 @@ The implementation has been borrowed from the EdgeDB project.
 
 ## Changelog
 
+### 23.1.1 (UNRELEASED)
+
+- Add Trove classifiers.
+
 ### 23.1.0 (2023-11-29)
 
 - Introduce `quattro.gather`.
