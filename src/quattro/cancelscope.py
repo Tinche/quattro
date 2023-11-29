@@ -153,7 +153,7 @@ class CancelScope:
             ):
                 self.cancelled_caught = True
                 if self._raise_on_cancel:
-                    raise TimeoutError()
+                    raise TimeoutError() from None
                 return True
             return None
 
