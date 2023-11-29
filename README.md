@@ -21,44 +21,6 @@ To install _quattro_, simply:
 $ pip install quattro
 ```
 
-## Task Groups
-
-On Python 3.11 and later, the [standard library TaskGroup](https://docs.python.org/3/library/asyncio-task.html#task-groups) implementation is used instead.
-The TaskGroup implementation here can be considered a backport for older Python versions.
-
-_quattro_ contains a TaskGroup implementation. TaskGroups are inspired by [Trio nurseries](https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning).
-
-```python
-from quattro import TaskGroup
-
-async def my_handler():
-    # We want to spawn some tasks, and ensure they are all handled before we return.
-    async def task_1():
-        ...
-
-    async def task_2():
-        ...
-
-    async with TaskGroup() as tg:
-        t1 = tg.create_task(task_1)
-        t2 = tg.create_task(task_2)
-
-    # The end of the `async with` block awaits the tasks, ensuring they are handled.
-```
-
-TaskGroups are essential building blocks for achieving the concept of [structured concurrency](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/).
-In simple terms, structured concurrency means your code does not leak tasks - when a coroutine
-finishes, all tasks spawned by that coroutine and all its children are also finished.
-(In fancy terms, the execution flow becomes a directed acyclic graph.)
-
-Structured concurrency can be achieved by using TaskGroups instead of `asyncio.create_task` to start background tasks.
-TaskGroups essentially do two things:
-
-- when exiting from a TaskGroup `async with` block, the TaskGroup awaits all of its children, ensuring they are finished when it exits
-- when a TaskGroup child task raises an exception, all other children and the task inside the context manager are cancelled
-
-The implementation has been borrowed from the EdgeDB project.
-
 ## Cancel Scopes
 
 _quattro_ contains an independent, asyncio implementation of [Trio CancelScopes](https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts).
@@ -106,6 +68,7 @@ The differences are:
 - The _quattro_ versions can be cancelled manually using `scope.cancel()`, and precancelled before they are entered
 - The _quattro_ versions are available on all supported Python versions, not just 3.11+.
 
+
 ### asyncio and Trio differences
 
 `fail_after` and `fail_at` raise `asyncio.Timeout` instead of `trio.Cancelled` exceptions when they fail.
@@ -128,10 +91,52 @@ This is a limitation of the underlying framework.
 
 In _quattro_, cancellation scopes cannot be shielded.
 
+
+## Task Groups
+
+On Python 3.11 and later, the [standard library TaskGroup](https://docs.python.org/3/library/asyncio-task.html#task-groups) implementation is used instead.
+The TaskGroup implementation here can be considered a backport for older Python versions.
+
+_quattro_ contains a TaskGroup implementation. TaskGroups are inspired by [Trio nurseries](https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning).
+
+```python
+from quattro import TaskGroup
+
+async def my_handler():
+    # We want to spawn some tasks, and ensure they are all handled before we return.
+    async def task_1():
+        ...
+
+    async def task_2():
+        ...
+
+    async with TaskGroup() as tg:
+        t1 = tg.create_task(task_1)
+        t2 = tg.create_task(task_2)
+
+    # The end of the `async with` block awaits the tasks, ensuring they are handled.
+```
+
+TaskGroups are essential building blocks for achieving the concept of [structured concurrency](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/).
+In simple terms, structured concurrency means your code does not leak tasks - when a coroutine
+finishes, all tasks spawned by that coroutine and all its children are also finished.
+(In fancy terms, the execution flow becomes a directed acyclic graph.)
+
+Structured concurrency can be achieved by using TaskGroups instead of `asyncio.create_task` to start background tasks.
+TaskGroups essentially do two things:
+
+- when exiting from a TaskGroup `async with` block, the TaskGroup awaits all of its children, ensuring they are finished when it exits
+- when a TaskGroup child task raises an exception, all other children and the task inside the context manager are cancelled
+
+The implementation has been borrowed from the EdgeDB project.
+
+
 ## Changelog
 
 ### 23.1.0 (UNRELEASED)
 
+- Introduce `quattro.gather`.
+- Add support for Python 3.12.
 - Switch to [PDM](https://pdm.fming.dev/latest/).
 
 ### 22.2.0 (2022-12-27)
