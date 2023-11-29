@@ -8,7 +8,11 @@ authors = [{name = "Tin Tvrtkovic", email = "tinchester@gmail.com"}]
 classifiers = ["License :: OSI Approved :: Apache Software License"]
 dynamic = ["description", "version"]
 requires-python = ">=3.9"
-dependencies = ["attrs", "exceptiongroup; python_version < '3.11'"]
+dependencies = [
+    "attrs",
+    "exceptiongroup; python_version < '3.11'",
+    "typing_extensions; python_version < '3.10'"
+]
 readme = "README.md"
 
 [tool.pdm.dev-dependencies]

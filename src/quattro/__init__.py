@@ -3,7 +3,12 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Awaitable, Coroutine, Generator
-from typing import Any, Literal, TypeAlias, TypeVar, overload
+from typing import Any, Literal, TypeVar, overload
+
+try:
+    from typing import TypeAlias
+except ImportError:
+    from typing_extensions import TypeAlias
 
 from .cancelscope import (
     CancelScope,
