@@ -124,7 +124,7 @@ async def gather(  # type: ignore[overload-overlap]
 async def gather(  # type: ignore[overload-overlap]
     __coro_or_future1: Coroutine[Any, Any, _T1], *, return_exceptions: bool
 ) -> tuple[_T1 | BaseException]:
-    ...  # type: ignore[overload-overlap]
+    ...
 
 
 @overload

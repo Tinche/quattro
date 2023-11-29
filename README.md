@@ -162,6 +162,7 @@ The implementation has been borrowed from the EdgeDB project.
 ### 23.1.0 (UNRELEASED)
 
 - Introduce `quattro.gather`.
+  ([#5](https://github.com/Tinche/quattro/pull/5))
 - Add support for Python 3.12.
 - Switch to [PDM](https://pdm.fming.dev/latest/).
 
