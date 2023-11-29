@@ -51,11 +51,9 @@ _T5 = TypeVar("_T5")
 _T6 = TypeVar("_T6")
 
 if sys.version_info >= (3, 12):
-    _AwaitableLike: TypeAlias = Awaitable[_T]
     _CoroutineLike: TypeAlias = Coroutine[Any, Any, _T]
 else:
-    _AwaitableLike: TypeAlias = Generator[Any, None, _T] | Awaitable[_T]
-    _CoroutineLike: TypeAlias = Generator[Any, None, _T] | Coroutine[Any, Any, _T]
+    _CoroutineLike: TypeAlias = "Generator[Any, None, _T] | Coroutine[Any, Any, _T]"
 
 
 @overload
