@@ -210,12 +210,11 @@ async def gather(  # type: ignore[misc]
     if not coros:
         return ()
 
-    subtasks = []
     async with TaskGroup() as tg:
-        for coro in coros:
-            subtasks.append(
-                tg.create_task(coro if not return_exceptions else _wrap_coro(coro))
-            )
+        subtasks = [
+            tg.create_task(coro if not return_exceptions else _wrap_coro(coro))
+            for coro in coros
+        ]
 
     return tuple([await f for f in subtasks])
 
