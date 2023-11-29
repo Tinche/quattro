@@ -8,7 +8,10 @@ authors = [{name = "Tin Tvrtkovic", email = "tinchester@gmail.com"}]
 classifiers = ["License :: OSI Approved :: Apache Software License"]
 dynamic = ["description", "version"]
 requires-python = ">=3.9"
-dependencies = ["attrs", "exceptiongroup; python_version < '3.11'"]
+dependencies = [
+    "attrs",
+    "exceptiongroup; python_version < '3.11'",
+]
 readme = "README.md"
 
 [tool.pdm.dev-dependencies]
@@ -22,8 +25,8 @@ lint = [
     "ruff>=0.0.272",
 ]
 
-[tool.isort]
-profile = "attrs"
+[tool.mypy]
+warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 module = "asyncio.taskgroups"
@@ -67,6 +70,11 @@ ignore = [
     "S101",   # assert
     "S301",   # pickle in tests
     "PGH003", # leave my type: ignores alone
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "@overload",
 ]
 
 [tool.hatch.version]

@@ -197,3 +197,9 @@ async def test_move_on_after_move_deadline_to_past():
 
     spent = time() - start
     assert 0.1 <= spent <= 0.15
+
+
+async def test_enter_twice():
+    """Cannot enter twice."""
+    with (c := move_on_after(0.2)), pytest.raises(RuntimeError), c:
+        pass

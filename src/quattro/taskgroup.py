@@ -63,7 +63,7 @@ except ImportError:
             msg += ">"
             return msg
 
-        async def __aenter__(self) -> "TaskGroup":  # type: ignore
+        async def __aenter__(self) -> "TaskGroup":
             if self._loop is not None:
                 raise RuntimeError(f"TaskGroup {self!r} has been already entered")
 
@@ -179,7 +179,7 @@ except ImportError:
             if context is None:
                 task = self._loop.create_task(coro)
             else:
-                task = context.run(self._loop.create_task, coro)  # type: ignore
+                task = context.run(self._loop.create_task, coro)
             task.add_done_callback(
                 partial(
                     self._on_task_done, loop=self._loop, parent_task=self._parent_task
