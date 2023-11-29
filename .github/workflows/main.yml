@@ -74,6 +74,9 @@ jobs:
           export TOTAL=$(python -c "import json;print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
           echo "total=$TOTAL" >> $GITHUB_ENV
 
+          # Report again and fail if under the threshold.
+          python -Im coverage report --fail-under=97
+
       - name: "Upload HTML report."
         uses: "actions/upload-artifact@v3"
         with:
