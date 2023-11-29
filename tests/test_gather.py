@@ -1,4 +1,4 @@
-from asyncio import CancelledError, sleep
+from asyncio import CancelledError, current_task, get_running_loop, sleep
 from asyncio import gather as asyncio_gather
 
 from pytest import mark, raises
@@ -101,7 +101,12 @@ async def test_parent_cancelled(gather):
 
     res = None
 
-    with move_on_after(0.001):
+    # We cannot use `move_on` here since asyncio.gather doesn't
+    # work with it on some versions of 3.9 and 3.10.
+    current = current_task()
+    get_running_loop().call_later(0.001, lambda: current.cancel())
+
+    with raises(CancelledError):
         res = await gather(test(), test())
 
     assert res is None
@@ -124,7 +129,13 @@ async def test_parent_cancelled_return_excs(gather):
 
     res = None
 
-    with move_on_after(0.001):
+    # We cannot use
+    # `move_on` here since asyncio.gather doesn't
+    # work with it on some versions of 3.9 and 3.10.
+    current = current_task()
+    get_running_loop().call_later(0.001, lambda: current.cancel())
+
+    with raises(CancelledError):
         res = await gather(test(), test(), return_exceptions=True)
 
     assert res is None
