@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Awaitable, Coroutine, Generator
+from collections.abc import Coroutine, Generator
 from typing import Any, Literal, TypeVar, overload
 
 try:
@@ -232,7 +232,12 @@ async def gather(  # type: ignore[misc]
 
     Notable differences are:
 
-    * `quattro.gather` only takes coroutines, and not futures.
+    * `quattro.gather` only accepts coroutines and not futures, just like a
+      TaskGroup.
+    * When `return_exceptions` is false (the default), an exception in a child task
+      will cause an ExceptionGroup to bubble out of the top-level `gather()` call,
+      just like in a TaskGroup.
+    * Results are returned as a tuple, not a list.
 
     (See https://docs.python.org/3/library/asyncio-task.html#asyncio.gather)
     """

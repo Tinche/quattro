@@ -21,11 +21,37 @@ To install _quattro_, simply:
 $ pip install quattro
 ```
 
+## `quattro.gather`
+
+_quattro_ comes with an independent, simple implementation of [`asyncio.gather`](https://docs.python.org/3/library/asyncio-task.html#asyncio.gather) based on Task Groups.
+The _quattro_ version is safer, and uses a task group under the hood to not leak tasks in cases of errors in child tasks.
+
+```python
+from quattro import gather
+
+async def my_handler():
+    res_1, res_2 = await gather(long_query_1(), long_query_2())
+```
+
+The `return_exceptions` argument can be used to make `gather()` catch and return exceptions as responses instead of letting them bubble out.
+
+```python
+from quattro import gather
+
+async def my_handler():
+    res_1, res_2 = await gather(
+        long_query_1(),
+        long_query_2(),
+        return_exceptions=True,
+    )
+
+    # res_1 and res_2 may be instances of exceptions.
+```
+
 ## Cancel Scopes
 
 _quattro_ contains an independent, asyncio implementation of [Trio CancelScopes](https://trio.readthedocs.io/en/stable/reference-core.html#cancellation-and-timeouts).
-Due to fundamental differences between asyncio and Trio the actual runtime behavior isn't
-exactly the same, but close.
+Due to fundamental differences between asyncio and Trio the actual runtime behavior isn't exactly the same, but close.
 
 ```python
 from quattro import move_on_after

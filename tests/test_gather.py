@@ -3,6 +3,7 @@ from asyncio import CancelledError, sleep
 from pytest import raises
 
 from quattro import gather, move_on_after
+from quattro.taskgroup import ExceptionGroup
 
 
 async def test_simple_gather():
