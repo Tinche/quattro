@@ -194,6 +194,8 @@ async def gather(  # type: ignore[misc]
 
     Notable differences are:
 
+    * If a child task fails other unfinished tasks will be cancelled, just like
+      in a TaskGroup.
     * `quattro.gather` only accepts coroutines and not futures and
       generators, just like a TaskGroup.
     * When `return_exceptions` is false (the default), an exception in a child task
@@ -202,6 +204,8 @@ async def gather(  # type: ignore[misc]
     * Results are returned as a tuple, not a list.
 
     (See https://docs.python.org/3/library/asyncio-task.html#asyncio.gather)
+
+    .. versionadded:: 23.1.0
     """
     if not coros:
         return ()
