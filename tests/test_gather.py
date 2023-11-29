@@ -6,6 +6,11 @@ from quattro import gather, move_on_after
 from quattro.taskgroup import ExceptionGroup
 
 
+async def test_empty():
+    """An empty gather works."""
+    assert await gather() == ()
+
+
 async def test_simple_gather():
     """Simple gather works."""
 
