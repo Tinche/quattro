@@ -254,7 +254,7 @@ async def gather(  # type: ignore[misc]
     return tuple([await f for f in subtasks])
 
 
-async def _wrap_coro(coro: Coroutine[Any, Any, _T]) -> _T | BaseException:
+async def _wrap_coro(coro: _CoroutineLike[_T]) -> _T | BaseException:
     """Adapt a raised exception into the return value."""
     try:
         return await coro
