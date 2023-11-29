@@ -256,3 +256,9 @@ async def test_fail_after_inner_unrelated_exc() -> None:
     assert first.cancelled_caught
     curr = current_task()
     assert curr and curr.cancelling() == 0
+
+
+async def test_deadline_expired_on_enter() -> None:
+    """Past deadlines work on entering the scope."""
+    with pytest.raises(TimeoutError), fail_after(0):
+        await sleep(1)
