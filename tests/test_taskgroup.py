@@ -726,3 +726,27 @@ async def test_custom_contexts() -> None:
     async with taskgroup.TaskGroup() as g:
         g.create_task(check_contextvar(1))
         g.create_task(check_contextvar(5), context=base)
+
+
+async def test_no_tasks_while_exiting():
+    """TaskGroups won't create tasks when exiting."""
+
+    async def error_soon():
+        """Sleep a little, then error."""
+        await asyncio.sleep(0.01)
+        raise ValueError()
+
+    with pytest.raises(ExceptionGroup):
+        async with taskgroup.TaskGroup() as tg:
+
+            async def spawn_after_cancel():
+                """Sleep a lot, get cancelled, try spawning a task."""
+                try:
+                    await asyncio.sleep(10)
+                except CancelledError:
+                    with pytest.raises(RuntimeError):
+                        tg.create_task(error_soon())
+                    raise
+
+            tg.create_task(error_soon())
+            tg.create_task(spawn_after_cancel())
