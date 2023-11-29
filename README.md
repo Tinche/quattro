@@ -165,7 +165,7 @@ The implementation has been borrowed from the EdgeDB project.
 
 ## Changelog
 
-### 23.1.0 (UNRELEASED)
+### 23.1.0 (2023-11-29)
 
 - Introduce `quattro.gather`.
   ([#5](https://github.com/Tinche/quattro/pull/5))
