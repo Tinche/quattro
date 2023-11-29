@@ -3,7 +3,7 @@ from asyncio import gather as asyncio_gather
 
 from pytest import mark, raises
 
-from quattro import gather, move_on_after
+from quattro import gather
 from quattro.taskgroup import ExceptionGroup
 
 
