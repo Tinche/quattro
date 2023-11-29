@@ -736,7 +736,7 @@ async def test_no_tasks_while_exiting():
         await asyncio.sleep(0.01)
         raise ValueError()
 
-    with pytest.raises(ExceptionGroup):
+    with pytest.raises(taskgroup.ExceptionGroup):
         async with taskgroup.TaskGroup() as tg:
 
             async def spawn_after_cancel():
