@@ -169,7 +169,11 @@ except ImportError:
                 raise me from None
 
         def create_task(
-            self, coro: Coroutine[Any, Any, R], *, context: Optional[Context] = None
+            self,
+            coro: Coroutine[Any, Any, R],
+            *,
+            name: Optional[str] = None,
+            context: Optional[Context] = None,
         ) -> "Task[R]":
             if self._exiting:
                 raise RuntimeError(f"TaskGroup {self!r} is awaiting in exit")
@@ -177,9 +181,9 @@ except ImportError:
                 raise RuntimeError(f"TaskGroup {self!r} has not been entered")
             assert self._parent_task
             if context is None:
-                task = self._loop.create_task(coro)
+                task = self._loop.create_task(coro, name=name)
             else:
-                task = context.run(self._loop.create_task, coro)
+                task = context.run(self._loop.create_task, coro, name=name)
             task.add_done_callback(
                 partial(
                     self._on_task_done, loop=self._loop, parent_task=self._parent_task
