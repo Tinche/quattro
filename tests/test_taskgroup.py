@@ -650,6 +650,31 @@ async def test_taskgroup_23():
         assert not len(g._tasks)
 
 
+async def test_taskgroup_24():
+    """TaskGroup.create_task 'name' argument attaches name to returned task."""
+
+    task_name = "foo"
+
+    async with taskgroup.TaskGroup() as g:
+        task = g.create_task(asyncio.sleep(0), name=task_name)
+
+    assert task.get_name() == task_name
+
+
+async def test_taskgroup_25():
+    """TaskGroup.create_task 'name' argument attaches name to returned task
+    when given an explicit context.
+    """
+
+    task_name = "foo"
+    context = copy_context()
+
+    async with taskgroup.TaskGroup() as g:
+        task = g.create_task(asyncio.sleep(0), name=task_name, context=context)
+
+    assert task.get_name() == task_name
+
+
 async def test_misc():
     """Test misc edge cases, for coverage."""
 
