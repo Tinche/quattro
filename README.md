@@ -168,6 +168,8 @@ The implementation has been borrowed from the EdgeDB project.
 ### 23.1.1 (UNRELEASED)
 
 - Add Trove classifiers.
+- Add `name` keyword-only parameter to `TaskGroup.create_task`.
+  ([#8](https://github.com/Tinche/quattro/pull/8))
 
 ### 23.1.0 (2023-11-29)
 
