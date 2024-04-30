@@ -165,7 +165,7 @@ The implementation has been borrowed from the EdgeDB project.
 
 ## Changelog
 
-### 23.1.1 (UNRELEASED)
+### 24.1.0 (2024-05-01)
 
 - Add Trove classifiers.
 - Add `name` keyword-only parameter to `TaskGroup.create_task`.
