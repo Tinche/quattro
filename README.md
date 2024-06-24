@@ -165,6 +165,11 @@ The implementation has been borrowed from the EdgeDB project.
 
 ## Changelog
 
+### 24.2.0 (UNRELEASED)
+
+- Add support for Python 3.13.
+  ([#9](https://github.com/Tinche/quattro/pull/9))
+
 ### 24.1.0 (2024-05-01)
 
 - Add Trove classifiers.
