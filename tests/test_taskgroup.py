@@ -686,12 +686,7 @@ async def test_misc():
 
         # TaskGroups cannot be used before entered.
         with pytest.raises(RuntimeError):
-            temp = error()
-            g.create_task(temp)
-
-        # Clean this up for the warning.
-        with pytest.raises(ZeroDivisionError):
-            await temp
+            g.create_task(error())
 
         async with g:
             with pytest.raises(RuntimeError):
