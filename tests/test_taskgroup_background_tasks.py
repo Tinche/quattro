@@ -1,9 +1,9 @@
 """Unit tests for the background tasks."""
 
 from asyncio import CancelledError, sleep
-from typing import Never
 
 from pytest import raises
+from typing_extensions import Never
 
 from quattro import TaskGroup
 from quattro.taskgroup import ExceptionGroup
