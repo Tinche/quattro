@@ -19,8 +19,9 @@ from __future__ import annotations
 
 import builtins
 from asyncio import CancelledError, current_task
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from attrs import define
 
 if TYPE_CHECKING:
     from asyncio import Task, _CoroutineLike
@@ -298,7 +299,7 @@ except ImportError:
                 parent_task.cancel()
 
 
-@dataclass(slots=True)
+@define
 class _CancelFlag:
     """
     A small piece of data for a background task to know if the TaskGroup cancelled
