@@ -15,8 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
 
 import builtins
+from asyncio import CancelledError, current_task
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from asyncio import Task, _CoroutineLike
+    from types import TracebackType
+
+    from typing_extensions import Self
 
 if "ExceptionGroup" not in dir(builtins):
     from exceptiongroup import ExceptionGroup
@@ -24,7 +34,7 @@ else:
     ExceptionGroup = ExceptionGroup
 
 try:
-    from asyncio.taskgroups import TaskGroup
+    from asyncio.taskgroups import TaskGroup as _TaskGroup
 except ImportError:
     import asyncio
     import types
@@ -33,24 +43,24 @@ except ImportError:
     from collections.abc import Coroutine
     from contextvars import Context
     from functools import partial
-    from typing import Any, Optional, TypeVar
+    from typing import Any, TypeVar
 
     R = TypeVar("R")
 
-    class TaskGroup:  # type: ignore
+    class _TaskGroup:  # type: ignore
         def __init__(self) -> None:
             self._exiting = False
             self._aborting = False
-            self._loop: Optional[AbstractEventLoop] = None
-            self._parent_task: Optional[Task] = None
+            self._loop: AbstractEventLoop | None = None
+            self._parent_task: Task | None = None
             self._parent_cancel_requested = False
             self._tasks: weakref.WeakSet[Task] = weakref.WeakSet()
             self._unfinished_tasks = 0
             self._errors: list[Exception] = []
-            self._base_error: Optional[BaseException] = None
-            self._on_completed_fut: Optional[Future] = None
+            self._base_error: BaseException | None = None
+            self._on_completed_fut: Future | None = None
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             msg = "<TaskGroup"
             if self._tasks:
                 msg += f" tasks={len(self._tasks)}"
@@ -63,7 +73,7 @@ except ImportError:
             msg += ">"
             return msg
 
-        async def __aenter__(self) -> "TaskGroup":
+        async def __aenter__(self) -> Self:
             if self._loop is not None:
                 raise RuntimeError(f"TaskGroup {self!r} has been already entered")
 
@@ -172,9 +182,9 @@ except ImportError:
             self,
             coro: Coroutine[Any, Any, R],
             *,
-            name: Optional[str] = None,
-            context: Optional[Context] = None,
-        ) -> "Task[R]":
+            name: str | None = None,
+            context: Context | None = None,
+        ) -> Task[R]:
             if self._exiting:
                 raise RuntimeError(f"TaskGroup {self!r} is awaiting in exit")
             if self._loop is None:
@@ -286,3 +296,71 @@ except ImportError:
                 #                                 # after TaskGroup is finished.
                 self._parent_cancel_requested = True
                 parent_task.cancel()
+
+
+@dataclass(slots=True)
+class _CancelFlag:
+    """
+    A small piece of data for a background task to know if the TaskGroup cancelled
+    it or not as part of normal shutdown.
+    """
+
+    set: bool = False
+
+
+async def _background_task(coro: _CoroutineLike, flag: _CancelFlag) -> None:
+    current = current_task()
+    assert current
+    try:
+        await coro
+    except CancelledError:
+        # Did we cancel this?
+        if flag.set:
+            if current.uncancel():
+                raise
+        else:
+            raise
+
+
+class TaskGroup(_TaskGroup):
+    def __init__(self) -> None:
+        _TaskGroup.__init__(self)
+        self._bg_tasks: dict[Task, _CancelFlag] = {}
+
+    def create_background_task(
+        self,
+        coro: _CoroutineLike,
+        *,
+        name: str | None = None,
+        context: Context | None = None,
+    ) -> Task[None]:
+        """Create, schedule and return a task.
+
+        When the task group shuts down, the task will be cancelled.
+
+        If this task finishes with an error, the entire task group will be
+        cancelled, like with non-background tasks.
+        """
+        cancel_flag = _CancelFlag()
+        task = self.create_task(
+            _background_task(coro, cancel_flag), name=name, context=context
+        )
+
+        if not task.done():
+            self._bg_tasks[task] = cancel_flag
+            task.add_done_callback(lambda t: self._bg_tasks.pop(t))
+        return task
+
+    async def __aexit__(
+        self,
+        et: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        for bg_task, flag in self._bg_tasks.items():
+            if bg_task.done() or bg_task.cancelling():
+                continue
+            flag.set = True
+            bg_task.cancel()
+
+        await _TaskGroup.__aexit__(self, et, exc, tb)

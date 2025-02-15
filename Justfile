@@ -1,5 +1,3 @@
-.PHONY: test lint
-
 test: ## run tests quickly with the default Python
 	pdm run pytest -x --ff -l tests
 

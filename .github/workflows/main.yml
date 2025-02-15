@@ -25,6 +25,8 @@ jobs:
           python-version: "${{ matrix.python-version }}"
           allow-prereleases: true
 
+      - uses: extractions/setup-just@v2
+
       - name: "Run Tox"
         run: |
           set -xe
