@@ -3,13 +3,12 @@
 from asyncio import CancelledError, sleep
 
 from pytest import raises
-from typing_extensions import Never
 
 from quattro import TaskGroup
 from quattro.taskgroup import ExceptionGroup
 
 
-async def forever() -> Never:
+async def forever():
     while True:
         await sleep(1)
 
