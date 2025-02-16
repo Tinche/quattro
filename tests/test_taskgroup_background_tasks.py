@@ -74,7 +74,9 @@ async def test_result():
         task = tg.create_background_task(return_result(5))
         await sleep(0)
 
-    assert not task.cancelling()
+    if hasattr(task, "cancelling"):
+        assert not task.cancelling()
+
     with raises(CancelledError):
         task.exception()
     with raises(CancelledError):
