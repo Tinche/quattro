@@ -317,9 +317,14 @@ async def _background_task(coro: _CoroutineLike, flag: _CancelFlag) -> None:
     except CancelledError:
         # Did we cancel this?
         if flag.set:
-            if current.uncancel():
-                raise
+            if hasattr(current, "uncancel"):
+                if current.uncancel():
+                    raise
+            else:
+                # We swallow it, best we can do.
+                pass
         else:
+            # We didn't cancel this, so let it fly.
             raise
 
 
@@ -359,8 +364,15 @@ class TaskGroup(_TaskGroup):
         tb: TracebackType | None,
     ) -> None:
         for bg_task, flag in self._bg_tasks.items():
-            if bg_task.done() or bg_task.cancelling():
+            # Can a task be done without having executed its callbacks?
+            # Yes, because callbacks get scheduled, not executed, when
+            # it finishes. So a task can still be in _bg_tasks even though
+            # it is `.done()`.
+            if bg_task.done():
                 continue
+
+            # We set the flag and let the normal TaskGroup machinery
+            # await it.
             flag.set = True
             bg_task.cancel()
 
