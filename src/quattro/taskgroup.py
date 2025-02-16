@@ -324,7 +324,7 @@ async def _background_task(coro: _CoroutineLike[T], flag: _CancelFlag) -> T:
         # But if we cancelled and uncancelled it, it shouldn't abort the TaskGroup.
         if flag.state == "cancelled":
             if hasattr(current, "uncancel"):
-                if current.uncancel():
+                if current.uncancel() == 0:
                     flag.state = "uncancelled"
             else:
                 flag.state = "uncancelled"

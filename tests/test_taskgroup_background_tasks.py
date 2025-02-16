@@ -71,7 +71,7 @@ async def test_result():
     assert res == 1
 
     async with TaskGroup() as tg:
-        task = tg.create_background_task(return_result(5))
+        task = tg.create_background_task(forever())
         await sleep(0)
 
     if hasattr(task, "cancelling"):
