@@ -1,5 +1,7 @@
 """Unit tests for the background tasks."""
 
+from __future__ import annotations
+
 from asyncio import CancelledError, sleep
 
 from pytest import raises
