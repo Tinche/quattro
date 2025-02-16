@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import builtins
 from asyncio import CancelledError, current_task
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, TypeVar
 
 from attrs import define
 
@@ -87,7 +87,7 @@ except ImportError:
                 )
             self._patch_task(self._parent_task)
 
-            return self  # type: ignore
+            return self
 
         async def __aexit__(self, et, exc, _) -> None:
             self._exiting = True
@@ -306,26 +306,30 @@ class _CancelFlag:
     it or not as part of normal shutdown.
     """
 
-    set: bool = False
+    state: Literal["default", "cancelled", "uncancelled"] = "default"
 
 
-async def _background_task(coro: _CoroutineLike, flag: _CancelFlag) -> None:
+T = TypeVar("T")
+
+
+async def _background_task(coro: _CoroutineLike[T], flag: _CancelFlag) -> T:
     current = current_task()
     assert current
     try:
-        await coro
+        res = await coro
     except CancelledError:
         # Did we cancel this?
-        if flag.set:
+        # We're going to have to propagate no matter what, since we have nothing
+        # to return.
+        # But if we cancelled and uncancelled it, it shouldn't abort the TaskGroup.
+        if flag.state == "cancelled":
             if hasattr(current, "uncancel"):
                 if current.uncancel():
-                    raise
+                    flag.state = "uncancelled"
             else:
-                # We swallow it, best we can do.
-                pass
-        else:
-            # We didn't cancel this, so let it fly.
-            raise
+                flag.state = "uncancelled"
+        raise
+    return res
 
 
 class TaskGroup(_TaskGroup):
@@ -335,11 +339,11 @@ class TaskGroup(_TaskGroup):
 
     def create_background_task(
         self,
-        coro: _CoroutineLike,
+        coro: _CoroutineLike[T],
         *,
         name: str | None = None,
         context: Context | None = None,
-    ) -> Task[None]:
+    ) -> Task[T]:
         """Create, schedule and return a task.
 
         When the task group shuts down, the task will be cancelled.
@@ -373,7 +377,8 @@ class TaskGroup(_TaskGroup):
 
             # We set the flag and let the normal TaskGroup machinery
             # await it.
-            flag.set = True
+            assert flag.state == "default"
+            flag.state = "cancelled"
             bg_task.cancel()
 
         await _TaskGroup.__aexit__(self, et, exc, tb)

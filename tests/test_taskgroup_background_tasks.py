@@ -18,7 +18,13 @@ async def error_out() -> None:
     raise ValueError("Test")
 
 
-async def test_bg_tasks_are_stopped():
+async def return_result(after: float | None = None) -> int:
+    if after is not None:
+        await sleep(after)
+    return 1
+
+
+async def test_tasks_are_stopped():
     """Bg tasks are correctly stopped when exiting."""
     async with TaskGroup() as tg:
         task = tg.create_background_task(forever())
@@ -26,7 +32,7 @@ async def test_bg_tasks_are_stopped():
     assert task.done()
 
 
-async def test_bg_task_errors_interrupt():
+async def test_errors_interrupt():
     """Errors in bg tasks interrupt."""
 
     with raises(ExceptionGroup) as exc:
@@ -44,3 +50,30 @@ async def test_bg_task_errors_interrupt():
 
     assert task2.done()
     assert isinstance(task2.exception(), ValueError)
+
+
+async def test_result():
+    """Background tasks return proper results."""
+
+    async with TaskGroup() as tg:
+        task = tg.create_background_task(return_result())
+        res = await task
+
+    assert res == 1
+
+    async with TaskGroup() as tg:
+        task = tg.create_background_task(return_result(0.01))
+        await sleep(0.02)
+        res = await task
+
+    assert res == 1
+
+    async with TaskGroup() as tg:
+        task = tg.create_background_task(return_result(5))
+        await sleep(0)
+
+    assert not task.cancelling()
+    with raises(CancelledError):
+        task.exception()
+    with raises(CancelledError):
+        task.result()

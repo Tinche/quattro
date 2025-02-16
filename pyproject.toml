@@ -51,6 +51,8 @@ source_pkgs = ["quattro"]
 
 [tool.ruff]
 src = ["src", "tests"]
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle
     "W",   # pycodestyle
