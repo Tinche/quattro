@@ -91,7 +91,8 @@ async def test_result():
         await sleep(0)
 
     if hasattr(task, "cancelling"):
-        assert not task.cancelling()
+        # Taskgroups do not clean up their cancels, and neither do we.
+        assert task.cancelling() == 1
 
     with raises(CancelledError):
         task.exception()

@@ -18,10 +18,7 @@
 from __future__ import annotations
 
 import builtins
-from asyncio import CancelledError, current_task
-from typing import TYPE_CHECKING, Literal, TypeVar
-
-from attrs import define
+from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     from asyncio import Task, _CoroutineLike
@@ -299,43 +296,13 @@ except ImportError:
                 parent_task.cancel()
 
 
-@define
-class _CancelFlag:
-    """
-    A small piece of data for a background task to know if the TaskGroup cancelled
-    it or not as part of normal shutdown.
-    """
-
-    state: Literal["default", "cancelled", "uncancelled"] = "default"
-
-
 T = TypeVar("T")
-
-
-async def _background_task(coro: _CoroutineLike[T], flag: _CancelFlag) -> T:
-    current = current_task()
-    assert current
-    try:
-        res = await coro
-    except CancelledError:
-        # Did we cancel this?
-        # We're going to have to propagate no matter what, since we have nothing
-        # to return.
-        # But if we cancelled and uncancelled it, it shouldn't abort the TaskGroup.
-        if flag.state == "cancelled":
-            if hasattr(current, "uncancel"):
-                if current.uncancel() == 0:
-                    flag.state = "uncancelled"
-            else:
-                flag.state = "uncancelled"
-        raise
-    return res
 
 
 class TaskGroup(_TaskGroup):
     def __init__(self) -> None:
         _TaskGroup.__init__(self)
-        self._bg_tasks: dict[Task, _CancelFlag] = {}
+        self._bg_tasks: set[Task] = set()
 
     def create_background_task(
         self,
@@ -351,14 +318,11 @@ class TaskGroup(_TaskGroup):
         If this task finishes with an error, the entire task group will be
         cancelled, like with non-background tasks.
         """
-        cancel_flag = _CancelFlag()
-        task = self.create_task(
-            _background_task(coro, cancel_flag), name=name, context=context
-        )
+        task = self.create_task(coro, name=name, context=context)
 
         if not task.done():
-            self._bg_tasks[task] = cancel_flag
-            task.add_done_callback(lambda t: self._bg_tasks.pop(t))
+            self._bg_tasks.add(task)
+            task.add_done_callback(lambda t: self._bg_tasks.discard(t))
         return task
 
     async def __aexit__(
@@ -367,7 +331,7 @@ class TaskGroup(_TaskGroup):
         exc: BaseException | None,
         tb: TracebackType | None,
     ) -> None:
-        for bg_task, flag in self._bg_tasks.items():
+        for bg_task in self._bg_tasks:
             # Can a task be done without having executed its callbacks?
             # Yes, because callbacks get scheduled, not executed, when
             # it finishes. So a task can still be in _bg_tasks even though
@@ -375,10 +339,6 @@ class TaskGroup(_TaskGroup):
             if bg_task.done():
                 continue
 
-            # We set the flag and let the normal TaskGroup machinery
-            # await it.
-            assert flag.state == "default"
-            flag.state = "cancelled"
             bg_task.cancel()
 
         await _TaskGroup.__aexit__(self, et, exc, tb)
