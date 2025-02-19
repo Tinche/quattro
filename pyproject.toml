@@ -51,6 +51,8 @@ source_pkgs = ["quattro"]
 
 [tool.ruff]
 src = ["src", "tests"]
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle
     "W",   # pycodestyle
@@ -81,6 +83,7 @@ ignore = [
 [tool.coverage.report]
 exclude_also = [
     "@overload",
+    "if TYPE_CHECKING:",
 ]
 
 [tool.hatch.version]

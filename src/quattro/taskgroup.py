@@ -15,8 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
 
 import builtins
+from typing import TYPE_CHECKING, TypeVar
+
+if TYPE_CHECKING:
+    from asyncio import Task, _CoroutineLike
+    from types import TracebackType
+
+    from typing_extensions import Self
 
 if "ExceptionGroup" not in dir(builtins):
     from exceptiongroup import ExceptionGroup
@@ -24,7 +32,7 @@ else:
     ExceptionGroup = ExceptionGroup
 
 try:
-    from asyncio.taskgroups import TaskGroup
+    from asyncio.taskgroups import TaskGroup as _TaskGroup
 except ImportError:
     import asyncio
     import types
@@ -33,24 +41,24 @@ except ImportError:
     from collections.abc import Coroutine
     from contextvars import Context
     from functools import partial
-    from typing import Any, Optional, TypeVar
+    from typing import Any, TypeVar
 
     R = TypeVar("R")
 
-    class TaskGroup:  # type: ignore
+    class _TaskGroup:  # type: ignore
         def __init__(self) -> None:
             self._exiting = False
             self._aborting = False
-            self._loop: Optional[AbstractEventLoop] = None
-            self._parent_task: Optional[Task] = None
+            self._loop: AbstractEventLoop | None = None
+            self._parent_task: Task | None = None
             self._parent_cancel_requested = False
             self._tasks: weakref.WeakSet[Task] = weakref.WeakSet()
             self._unfinished_tasks = 0
             self._errors: list[Exception] = []
-            self._base_error: Optional[BaseException] = None
-            self._on_completed_fut: Optional[Future] = None
+            self._base_error: BaseException | None = None
+            self._on_completed_fut: Future | None = None
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             msg = "<TaskGroup"
             if self._tasks:
                 msg += f" tasks={len(self._tasks)}"
@@ -63,7 +71,7 @@ except ImportError:
             msg += ">"
             return msg
 
-        async def __aenter__(self) -> "TaskGroup":
+        async def __aenter__(self) -> Self:
             if self._loop is not None:
                 raise RuntimeError(f"TaskGroup {self!r} has been already entered")
 
@@ -76,7 +84,7 @@ except ImportError:
                 )
             self._patch_task(self._parent_task)
 
-            return self  # type: ignore
+            return self
 
         async def __aexit__(self, et, exc, _) -> None:
             self._exiting = True
@@ -172,9 +180,9 @@ except ImportError:
             self,
             coro: Coroutine[Any, Any, R],
             *,
-            name: Optional[str] = None,
-            context: Optional[Context] = None,
-        ) -> "Task[R]":
+            name: str | None = None,
+            context: Context | None = None,
+        ) -> Task[R]:
             if self._exiting:
                 raise RuntimeError(f"TaskGroup {self!r} is awaiting in exit")
             if self._loop is None:
@@ -286,3 +294,51 @@ except ImportError:
                 #                                 # after TaskGroup is finished.
                 self._parent_cancel_requested = True
                 parent_task.cancel()
+
+
+T = TypeVar("T")
+
+
+class TaskGroup(_TaskGroup):
+    def __init__(self) -> None:
+        _TaskGroup.__init__(self)
+        self._bg_tasks: set[Task] = set()
+
+    def create_background_task(
+        self,
+        coro: _CoroutineLike[T],
+        *,
+        name: str | None = None,
+        context: Context | None = None,
+    ) -> Task[T]:
+        """Create, schedule and return a task.
+
+        When the task group shuts down, the task will be cancelled.
+
+        If this task finishes with an error, the entire task group will be
+        cancelled, like with non-background tasks.
+        """
+        task = self.create_task(coro, name=name, context=context)
+
+        if not task.done():
+            self._bg_tasks.add(task)
+            task.add_done_callback(lambda t: self._bg_tasks.discard(t))
+        return task
+
+    async def __aexit__(
+        self,
+        et: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        for bg_task in self._bg_tasks:
+            # Can a task be done without having executed its callbacks?
+            # Yes, because callbacks get scheduled, not executed, when
+            # it finishes. So a task can still be in _bg_tasks even though
+            # it is `.done()`.
+            if bg_task.done():
+                continue
+
+            bg_task.cancel()
+
+        await _TaskGroup.__aexit__(self, et, exc, tb)

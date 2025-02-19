@@ -8,10 +8,10 @@
 
 ______________________________________________________________________
 
-**quattro** is an Apache 2 licensed library, written in Python, for task control in asyncio applications.
+**quattro** is an Apache 2 licensed library, written in Python, for advanced task control in asyncio applications.
 _quattro_ is influenced by structured concurrency concepts from the [Trio framework](https://trio.readthedocs.io/en/stable/).
 
-_quattro_ supports Python versions 3.9 - 3.11, including PyPy.
+_quattro_ supports Python versions 3.9 - 3.13, including PyPy.
 
 ## Installation
 
@@ -126,10 +126,8 @@ In _quattro_, cancellation scopes cannot be shielded.
 
 ## Task Groups
 
-On Python 3.11 and later, the [standard library TaskGroup](https://docs.python.org/3/library/asyncio-task.html#task-groups) implementation is used instead.
-The TaskGroup implementation here can be considered a backport for older Python versions.
-
-_quattro_ contains a TaskGroup implementation. TaskGroups are inspired by [Trio nurseries](https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning).
+_quattro_ contains a [TaskGroup](https://docs.python.org/3/library/asyncio-task.html#task-groups) subclass with support for background tasks.
+TaskGroups are inspired by [Trio nurseries](https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning).
 
 ```python
 from quattro import TaskGroup
@@ -142,9 +140,13 @@ async def my_handler():
     async def task_2():
         ...
 
+    async def background_task():
+        ...
+
     async with TaskGroup() as tg:
         t1 = tg.create_task(task_1)
         t2 = tg.create_task(task_2)
+        tg.create_background_task(background_task)
 
     # The end of the `async with` block awaits the tasks, ensuring they are handled.
 ```
@@ -160,13 +162,21 @@ TaskGroups essentially do two things:
 - when exiting from a TaskGroup `async with` block, the TaskGroup awaits all of its children, ensuring they are finished when it exits
 - when a TaskGroup child task raises an exception, all other children and the task inside the context manager are cancelled
 
-The implementation has been borrowed from the EdgeDB project.
+### Background Tasks
+
+_quattro_ TaskGroups can be used to start _background tasks_.
+Background tasks are different than normal tasks in that they do not block an exit from the TaskGroup if they aren't finished.
+Any running background tasks are cancelled at the time of exit.
+Background tasks are useful for auxiliary tasks that support a main task, for example pumping events between queues.
+An unhandled error in a background task will still abort the entire TaskGroup.
 
 
 ## Changelog
 
-### 24.2.0 (UNRELEASED)
+### 25.1.0 (UNRELEASED)
 
+- TaskGroups now support background tasks via `TaskGroup.create_background_task`.
+  ([#10](https://github.com/Tinche/quattro/pull/10))
 - Add support for Python 3.13.
   ([#9](https://github.com/Tinche/quattro/pull/9))
 
