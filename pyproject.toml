@@ -10,6 +10,11 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
 dynamic = ["description", "version"]
@@ -17,6 +22,7 @@ requires-python = ">=3.9"
 dependencies = [
     "attrs",
     "exceptiongroup; python_version < '3.11'",
+    "taskgroup; python_version < '3.11'",
 ]
 readme = "README.md"
 

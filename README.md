@@ -166,7 +166,7 @@ TaskGroups essentially do two things:
 
 _quattro_ TaskGroups can be used to start _background tasks_.
 Background tasks are different than normal tasks in that they do not block an exit from the TaskGroup if they aren't finished.
-Any running background tasks are cancelled at the time of exit.
+Instead, any running background tasks are cancelled at the time of exit.
 Background tasks are useful for auxiliary tasks that support a main task, for example pumping events between queues.
 An unhandled error in a background task will still abort the entire TaskGroup.
 
@@ -179,6 +179,8 @@ An unhandled error in a background task will still abort the entire TaskGroup.
   ([#10](https://github.com/Tinche/quattro/pull/10))
 - Add support for Python 3.13.
   ([#9](https://github.com/Tinche/quattro/pull/9))
+- Depend on the [_taskgroup_ package](https://pypi.org/project/taskgroup/) on Python 3.9 and 3.10, instead of our own implementation.
+  ([#11](https://github.com/Tinche/quattro/pull/11))
 
 ### 24.1.0 (2024-05-01)
 

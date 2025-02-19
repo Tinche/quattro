@@ -1,10 +1,13 @@
 from asyncio import CancelledError, current_task, get_running_loop, sleep
 from asyncio import gather as asyncio_gather
+from contextlib import suppress
 
 from pytest import mark, raises
 
 from quattro import gather
-from quattro.taskgroup import ExceptionGroup
+
+with suppress(ImportError):
+    from exceptiongroup import ExceptionGroup
 
 
 @mark.parametrize("gather", [gather, asyncio_gather])

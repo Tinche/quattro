@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from asyncio import CancelledError, sleep
+from contextlib import suppress
 
 from pytest import raises
 
 from quattro import TaskGroup
-from quattro.taskgroup import ExceptionGroup
+
+with suppress(ImportError):
+    from exceptiongroup import ExceptionGroup
 
 
 async def forever():

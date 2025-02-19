@@ -16,13 +16,13 @@ from .taskgroup import TaskGroup
 __all__ = [
     "CancelScope",
     "TaskGroup",
-    "TaskGroupError",
     "fail_after",
     "fail_at",
     "gather",
     "get_current_effective_deadline",
     "move_on_after",
     "move_on_at",
+    "test",
 ]
 
 
