@@ -7,6 +7,8 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   tests:
     name: "Python ${{ matrix.python-version }}"
@@ -19,6 +21,8 @@ jobs:
 
     steps:
       - uses: "actions/checkout@v4"
+        with:
+          persist-credentials: false
 
       - uses: "pdm-project/setup-pdm@v4"
         with:
@@ -48,8 +52,6 @@ jobs:
     runs-on: "ubuntu-latest"
 
     steps:
-      - uses: "actions/checkout@v4"
-
       - uses: "actions/setup-python@v5"
         with:
           cache: "pip"
@@ -104,7 +106,9 @@ jobs:
       runs-on: "ubuntu-latest"
 
       steps:
-        - uses: "actions/checkout@v3"
+        - uses: "actions/checkout@v4"
+          with:
+            persist-credentials: false
 
         - uses: "actions/setup-python@v4"
           with:
