@@ -11,7 +11,7 @@ from asyncio import (
 from contextvars import ContextVar
 from typing import Final, Literal, Optional, Union
 
-from attr import define, field
+from attrs import define, field
 
 _is_311_or_later: Final = sys.version_info >= (3, 11)
 
