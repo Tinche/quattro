@@ -54,6 +54,22 @@ async def test_errors_interrupt():
     assert isinstance(task2.exception(), ValueError)
 
 
+async def test_bg_cancellation():
+    """Cancellations in bg tasks are swallowed.
+
+    Apparently, task groups swallow CancelledErrors in their children.
+    """
+
+    async with TaskGroup() as tg:
+        task = tg.create_task(forever())
+        await sleep(1)
+        task.cancel()
+        await sleep(1)
+
+    with raises(CancelledError):
+        task.exception()
+
+
 async def test_result():
     """Background tasks return proper results."""
 
