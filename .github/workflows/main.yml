@@ -29,8 +29,11 @@ jobs:
       - uses: extractions/setup-just@v2
 
       - name: "Run Tox"
+        env:
+          V: ${{ matrix.python-version }}
         run: |
-          uvx --with tox-gh-actions --with tox-uv tox
+          export TOX_PYTHON=py$(echo $V | tr -d .)
+          uvx --with tox-uv tox -e $TOX_PYTHON
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
