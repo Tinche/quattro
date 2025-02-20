@@ -54,6 +54,7 @@ asyncio_mode = "auto"
 [tool.coverage.run]
 parallel = true
 source_pkgs = ["quattro"]
+branch = true
 
 [tool.ruff]
 src = ["src", "tests"]
