@@ -24,20 +24,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: "pdm-project/setup-pdm@v4"
-        with:
-          python-version: "${{ matrix.python-version }}"
-          allow-python-prereleases: true
-          cache: true
-          version: "2.21.0"
-
       - uses: hynek/setup-cached-uv@v2
 
       - uses: extractions/setup-just@v2
 
       - name: "Run Tox"
         run: |
-          uvx --with tox-gh-actions tox
+          uvx --with tox-gh-actions --with tox-uv tox
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
