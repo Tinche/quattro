@@ -175,6 +175,7 @@ async def test_fail_after_cancel_myself():
 
 
 async def test_fail_after_precancel() -> None:
+    """Precancelling works."""
     cancel_scope = fail_after(0.5)
 
     async def task():
@@ -186,6 +187,8 @@ async def test_fail_after_precancel() -> None:
     t = create_task(task())
     await sleep(0.01)
     assert t.done()
+
+    assert isinstance(t.exception(), TimeoutError)
 
     await sleep(0.5)
 
