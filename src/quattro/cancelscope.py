@@ -11,7 +11,7 @@ from asyncio import (
 from contextvars import ContextVar
 from typing import Final, Literal, Optional, Union
 
-from attr import define, field
+from attrs import define, field
 
 _is_311_or_later: Final = sys.version_info >= (3, 11)
 
@@ -50,14 +50,24 @@ class CancelScope:
 
     @deadline.setter
     def deadline(self, value: Optional[float]) -> None:
+        """Set the deadline to the given value, removing it if `None`.
+
+        This will not trigger an actual cancellation until the scope is
+        entered.
+        """
         if self._deadline == value:
             return
         self._deadline = value
-        if self._timeout_handler is not None:
-            self._timeout_handler.cancel()
-            self._timeout_handler = None
-        if value is not None:
-            self._timeout_handler = get_running_loop().call_at(value, self.__timeout_cb)
+
+        # Only handle timers if we're already in the scope
+        if self._current_task is not None and self._current_task != "done":
+            if self._timeout_handler is not None:
+                self._timeout_handler.cancel()
+                self._timeout_handler = None
+            if value is not None:
+                self._timeout_handler = get_running_loop().call_at(
+                    value, self.__timeout_cb
+                )
 
     if _is_311_or_later:
 
@@ -68,8 +78,6 @@ class CancelScope:
             self._current_task = current_task()
             cancel_stack.set((self, *cancel_stack.get()))
             if self._cancel_status == "prequeued":
-                if self._timeout_handler is not None:
-                    self._timeout_handler.cancel()
                 self._timeout_handler = get_running_loop().call_soon(self.__timeout_cb)
                 self._deadline = get_running_loop().time()
             elif self._deadline is not None:
@@ -121,8 +129,6 @@ class CancelScope:
             cancel_stack.set((self, *cancel_stack.get()))
             if self._cancel_status == "prequeued":
                 # The scope was cancelled before entering.
-                if self._timeout_handler is not None:
-                    self._timeout_handler.cancel()
                 self._timeout_handler = get_running_loop().call_soon(self.__timeout_cb)
                 self._deadline = get_running_loop().time()
             elif self._deadline is not None:

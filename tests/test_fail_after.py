@@ -262,3 +262,23 @@ async def test_deadline_expired_on_enter() -> None:
     """Past deadlines work on entering the scope."""
     with pytest.raises(TimeoutError), fail_after(0):
         await sleep(1)
+
+
+@pytest.mark.skipif(not _is_311_or_later, reason="3.11+ only")
+async def test_double_cancel_protection():
+    """Test that calling cancel() multiple times only cancels the task once."""
+
+    async def mock_task():
+        with fail_after(1000.0) as scope:
+            # Call cancel twice in succession
+            scope.cancel()
+            scope.cancel()
+
+            # Check that task is only cancelled once
+            curr = current_task()
+            assert curr and curr.cancelling() == 1
+
+            await sleep(0.1)
+
+    with pytest.raises(TimeoutError):
+        await mock_task()
