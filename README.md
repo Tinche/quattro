@@ -181,6 +181,10 @@ An unhandled error in a background task will still abort the entire TaskGroup.
   ([#9](https://github.com/Tinche/quattro/pull/9))
 - Depend on the [_taskgroup_ package](https://pypi.org/project/taskgroup/) on Python 3.9 and 3.10, instead of our own implementation.
   ([#11](https://github.com/Tinche/quattro/pull/11))
+- Switch to [uv](https://github.com/astral-sh/uv).
+  ([#14](https://github.com/Tinche/quattro/pull/14))
+- Introduce [Zizmor](https://github.com/woodruffw/zizmor) for CI hardening.
+  ([#12](https://github.com/Tinche/quattro/pull/12))
 
 ### 24.1.0 (2024-05-01)
 

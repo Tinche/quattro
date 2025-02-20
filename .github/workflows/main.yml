@@ -17,27 +17,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "pypy-3.9"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "py3.9"]
 
     steps:
       - uses: "actions/checkout@v4"
         with:
           persist-credentials: false
 
-      - uses: "pdm-project/setup-pdm@v4"
-        with:
-          python-version: "${{ matrix.python-version }}"
-          allow-python-prereleases: true
-          cache: true
-          version: "2.21.0"
-
       - uses: hynek/setup-cached-uv@v2
 
       - uses: extractions/setup-just@v2
 
       - name: "Run Tox"
+        env:
+          V: ${{ matrix.python-version }}
         run: |
-          uvx --with tox-gh-actions tox
+          export TOX_PYTHON=py$(echo $V | tr -d .)
+          uvx --with tox-uv tox -e $TOX_PYTHON
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
