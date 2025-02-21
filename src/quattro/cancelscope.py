@@ -164,8 +164,12 @@ class CancelScope:
             return None
 
     def __timeout_cb(self) -> None:
-        if self._current_task not in (None, "done"):
-            self.cancel()
+        # Can this execute while the _current_task is "done"?
+        # I don't think so, but `self.cancel` guards against it anyway.
+        # Can this execute while the _current_task is `None`?
+        # No, because `__enter__` sets the current task, and no
+        # handlers are scheduled before that.
+        self.cancel()
 
 
 cancel_stack = ContextVar[tuple[CancelScope, ...]]("cancel_stack", default=())
