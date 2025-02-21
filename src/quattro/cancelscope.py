@@ -65,9 +65,11 @@ class CancelScope:
                 self._timeout_handler.cancel()
                 self._timeout_handler = None
             if value is not None:
-                self._timeout_handler = get_running_loop().call_at(
-                    value, self.__timeout_cb
-                )
+                loop = get_running_loop()
+                if value <= loop.time():
+                    self.cancel()
+                else:
+                    self._timeout_handler = loop.call_at(value, self.__timeout_cb)
 
     if _is_311_or_later:
 
@@ -83,8 +85,8 @@ class CancelScope:
             elif self._deadline is not None:
                 loop = get_running_loop()
                 if self._deadline <= loop.time():
-                    # This is mostly a fix for sleep(0) :/
-                    self._timeout_handler = loop.call_soon(self.__timeout_cb)
+                    # No need to go to the trouble of scheduling a task to call this.
+                    self.cancel()
                 else:
                     self._timeout_handler = loop.call_at(
                         self._deadline, self.__timeout_cb
@@ -115,7 +117,7 @@ class CancelScope:
             ):
                 self.cancelled_caught = True
                 if self._raise_on_cancel:
-                    raise TimeoutError()
+                    raise TimeoutError() from None
                 return True
             return None
 
@@ -134,8 +136,8 @@ class CancelScope:
             elif self._deadline is not None:
                 loop = get_running_loop()
                 if self._deadline <= loop.time():
-                    # This is mostly a fix for sleep(0) :/
-                    self._timeout_handler = loop.call_soon(self.__timeout_cb)
+                    # No need to go to the trouble of scheduling a task to call this.
+                    self.cancel()
                 else:
                     self._timeout_handler = loop.call_at(
                         self._deadline, self.__timeout_cb

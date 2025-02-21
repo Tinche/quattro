@@ -298,3 +298,10 @@ async def test_deadline_outside_context():
 
     with pytest.raises(TimeoutError), scope:
         await sleep(0.2)
+
+
+async def test_set_deadline_inside() -> None:
+    with pytest.raises(TimeoutError), CancelScope(None) as scope:
+        scope._raise_on_cancel = True
+        scope.deadline = get_running_loop().time() - 1
+        await sleep(0)
