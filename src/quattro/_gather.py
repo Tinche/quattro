@@ -1,4 +1,5 @@
-"""Task control for asyncio."""
+"""A better `gather`."""
+
 from __future__ import annotations
 
 from collections.abc import Coroutine
@@ -20,8 +21,7 @@ _T6 = TypeVar("_T6")
 @overload
 async def gather(  # type: ignore[overload-overlap]
     coro: Coroutine[Any, Any, _T1], *, return_exceptions: Literal[False] = False
-) -> tuple[_T1]:
-    ...
+) -> tuple[_T1]: ...
 
 
 @overload
@@ -30,8 +30,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future2: Coroutine[Any, Any, _T2],
     *,
     return_exceptions: Literal[False] = False,
-) -> tuple[_T1, _T2]:
-    ...
+) -> tuple[_T1, _T2]: ...
 
 
 @overload
@@ -41,8 +40,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future3: Coroutine[Any, Any, _T3],
     *,
     return_exceptions: Literal[False] = False,
-) -> tuple[_T1, _T2, _T3]:
-    ...
+) -> tuple[_T1, _T2, _T3]: ...
 
 
 @overload
@@ -53,8 +51,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future4: Coroutine[Any, Any, _T4],
     *,
     return_exceptions: Literal[False] = False,
-) -> tuple[_T1, _T2, _T3, _T4]:
-    ...
+) -> tuple[_T1, _T2, _T3, _T4]: ...
 
 
 @overload
@@ -66,8 +63,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future5: Coroutine[Any, Any, _T5],
     *,
     return_exceptions: Literal[False] = False,
-) -> tuple[_T1, _T2, _T3, _T4, _T5]:
-    ...
+) -> tuple[_T1, _T2, _T3, _T4, _T5]: ...
 
 
 @overload
@@ -80,48 +76,43 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future6: Coroutine[Any, Any, _T6],
     *,
     return_exceptions: Literal[False] = False,
-) -> tuple[_T1, _T2, _T3, _T4, _T5, _T6]:
-    ...
+) -> tuple[_T1, _T2, _T3, _T4, _T5, _T6]: ...
 
 
 @overload
 async def gather(  # type: ignore[overload-overlap]
     *coros_or_futures: Coroutine[Any, Any, _T],
     return_exceptions: Literal[False] = False,
-) -> list[_T]:
-    ...
+) -> list[_T]: ...
 
 
 @overload
-async def gather(  # type: ignore[overload-overlap]
+async def gather(
     __coro_or_future1: Coroutine[Any, Any, _T1], *, return_exceptions: bool
-) -> tuple[_T1 | BaseException]:
-    ...
+) -> tuple[_T1 | BaseException]: ...
 
 
 @overload
-async def gather(  # type: ignore[overload-overlap]
+async def gather(
     __coro_or_future1: Coroutine[Any, Any, _T1],
     __coro_or_future2: Coroutine[Any, Any, _T2],
     *,
     return_exceptions: bool,
-) -> tuple[_T1 | BaseException, _T2 | BaseException]:
-    ...
+) -> tuple[_T1 | BaseException, _T2 | BaseException]: ...
 
 
 @overload
-async def gather(  # type: ignore[overload-overlap]
+async def gather(
     __coro_or_future1: Coroutine[Any, Any, _T1],
     __coro_or_future2: Coroutine[Any, Any, _T2],
     __coro_or_future3: Coroutine[Any, Any, _T3],
     *,
     return_exceptions: bool,
-) -> tuple[_T1 | BaseException, _T2 | BaseException, _T3 | BaseException]:
-    ...
+) -> tuple[_T1 | BaseException, _T2 | BaseException, _T3 | BaseException]: ...
 
 
 @overload
-async def gather(  # type: ignore[overload-overlap]
+async def gather(
     __coro_or_future1: Coroutine[Any, Any, _T1],
     __coro_or_future2: Coroutine[Any, Any, _T2],
     __coro_or_future3: Coroutine[Any, Any, _T3],
@@ -133,12 +124,11 @@ async def gather(  # type: ignore[overload-overlap]
     _T2 | BaseException,
     _T3 | BaseException,
     _T4 | BaseException,
-]:
-    ...
+]: ...
 
 
 @overload
-async def gather(  # type: ignore[overload-overlap]
+async def gather(
     __coro_or_future1: Coroutine[Any, Any, _T1],
     __coro_or_future2: Coroutine[Any, Any, _T2],
     __coro_or_future3: Coroutine[Any, Any, _T3],
@@ -152,12 +142,11 @@ async def gather(  # type: ignore[overload-overlap]
     _T3 | BaseException,
     _T4 | BaseException,
     _T5 | BaseException,
-]:
-    ...
+]: ...
 
 
 @overload
-async def gather(  # type: ignore[overload-overlap]
+async def gather(
     __coro_or_future1: Coroutine[Any, Any, _T1],
     __coro_or_future2: Coroutine[Any, Any, _T2],
     __coro_or_future3: Coroutine[Any, Any, _T3],
@@ -173,15 +162,13 @@ async def gather(  # type: ignore[overload-overlap]
     _T4 | BaseException,
     _T5 | BaseException,
     _T6 | BaseException,
-]:
-    ...
+]: ...
 
 
 @overload
 async def gather(
     *coros_or_futures: Coroutine[Any, Any, _T], return_exceptions: bool
-) -> list[_T | BaseException]:
-    ...
+) -> list[_T | BaseException]: ...
 
 
 async def gather(  # type: ignore[misc]

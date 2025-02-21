@@ -3,6 +3,7 @@ from asyncio import (
     TimeoutError,
     create_task,
     current_task,
+    get_running_loop,
     sleep,
 )
 from time import monotonic, time
@@ -285,3 +286,22 @@ async def test_double_cancel_protection():
 
     with pytest.raises(TimeoutError):
         await mock_task()
+
+
+async def test_deadline_outside_context():
+    """Setting the deadline before entering the context manager does nothing."""
+
+    scope = CancelScope()
+    scope._raise_on_cancel = True
+    scope.deadline = get_running_loop().time() + 0.1
+    assert scope._timeout_handler is None
+
+    with pytest.raises(TimeoutError), scope:
+        await sleep(0.2)
+
+
+async def test_set_deadline_inside() -> None:
+    with pytest.raises(TimeoutError), CancelScope(None) as scope:
+        scope._raise_on_cancel = True
+        scope.deadline = get_running_loop().time() - 1
+        await sleep(0)

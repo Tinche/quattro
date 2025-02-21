@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-from asyncio import CancelledError, sleep
-from contextlib import suppress
+import sys
+from asyncio import CancelledError, get_running_loop, sleep
 
+import pytest
 from pytest import raises
 
 from quattro import TaskGroup
 
-with suppress(ImportError):
+if sys.version_info < (3, 11):
     from exceptiongroup import ExceptionGroup
 
 
@@ -101,3 +102,17 @@ async def test_result():
         task.exception()
     with raises(CancelledError):
         task.result()
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 12),
+    reason="Eager task factory only available in Python 3.12+",
+)
+async def test_eager_task_factory() -> None:
+    """Eager task factories behave properly."""
+    from asyncio import eager_task_factory
+
+    get_running_loop().set_task_factory(eager_task_factory)
+
+    async with TaskGroup() as tg:
+        tg.create_background_task(return_result())

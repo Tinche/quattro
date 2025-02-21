@@ -54,6 +54,7 @@ asyncio_mode = "auto"
 [tool.coverage.run]
 parallel = true
 source_pkgs = ["quattro"]
+branch = true
 
 [tool.ruff]
 src = ["src", "tests"]
@@ -79,6 +80,7 @@ select = [
     "PIE", # flake8-pie
     "RUF", # ruff
     "I",   # isort
+    "T20", # flake8-print
 ]
 ignore = [
     "S101",   # assert

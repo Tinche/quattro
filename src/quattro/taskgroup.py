@@ -9,10 +9,10 @@ if TYPE_CHECKING:
     from types import TracebackType
 
 
-if sys.version_info[:2] >= (3, 11):
-    from asyncio.taskgroups import TaskGroup as _TaskGroup
-else:
+if sys.version_info[:2] < (3, 11):
     from taskgroup import TaskGroup as _TaskGroup
+else:
+    from asyncio.taskgroups import TaskGroup as _TaskGroup
 
 __all__ = ["TaskGroup"]
 
@@ -39,7 +39,6 @@ class TaskGroup(_TaskGroup):
         cancelled, like with non-background tasks.
         """
         task = self.create_task(coro, name=name, context=context)
-
         if not task.done():
             self._bg_tasks.add(task)
             task.add_done_callback(lambda t: self._bg_tasks.discard(t))
