@@ -185,6 +185,8 @@ An unhandled error in a background task will still abort the entire TaskGroup.
   ([#14](https://github.com/Tinche/quattro/pull/14))
 - Introduce [Zizmor](https://github.com/woodruffw/zizmor) for CI hardening.
   ([#12](https://github.com/Tinche/quattro/pull/12))
+- _quattro_ now has 100% branch coverage.
+  ([#16](https://github.com/Tinche/quattro/pull/16))
 
 ### 24.1.0 (2024-05-01)
 

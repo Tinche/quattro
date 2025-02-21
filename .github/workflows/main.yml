@@ -77,12 +77,12 @@ jobs:
           # Report again and fail if under the threshold.
           coverage report --fail-under=100
 
-      - name: "Upload HTML report."
+      - name: "Upload HTML report if check failed."
         uses: "actions/upload-artifact@v4"
         with:
           name: "html-report"
           path: "htmlcov"
-        if: always()
+        if: ${{ failure() }}
 
       - name: "Make badge"
         if: github.ref == 'refs/heads/main'
