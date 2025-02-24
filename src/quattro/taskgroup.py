@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from types import TracebackType
 
 
-if sys.version_info[:2] < (3, 11):
+if sys.version_info < (3, 11):
     from taskgroup import TaskGroup as _TaskGroup
 else:
     from asyncio.taskgroups import TaskGroup as _TaskGroup

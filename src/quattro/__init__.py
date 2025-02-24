@@ -22,7 +22,6 @@ __all__ = [
     "get_current_effective_deadline",
     "move_on_after",
     "move_on_at",
-    "test",
 ]
 
 
