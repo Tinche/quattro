@@ -173,7 +173,7 @@ An unhandled error in a background task will still abort the entire TaskGroup.
 
 ## Changelog
 
-### 25.1.1 (UNRELEASED)
+### 25.1.1 (2025-02-24)
 
 - Change a `sys.version_info` guard to work better with Pyright.
   ([#17](https://github.com/Tinche/quattro/pull/17))
