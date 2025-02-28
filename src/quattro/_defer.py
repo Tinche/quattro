@@ -1,8 +1,8 @@
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AsyncExitStack
-from typing import ParamSpec, TypeVar, overload
+from typing import TypeVar, overload
 
-from typing_extensions import Concatenate
+from typing_extensions import Concatenate, ParamSpec
 
 P = ParamSpec("P")
 T = TypeVar("T")
