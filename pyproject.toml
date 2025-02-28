@@ -23,6 +23,7 @@ dependencies = [
     "attrs",
     "exceptiongroup; python_version < '3.11'",
     "taskgroup; python_version < '3.11'",
+    "typing_extensions; python_version < '3.11'",
 ]
 readme = "README.md"
 
