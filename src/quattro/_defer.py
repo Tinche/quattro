@@ -1,8 +1,12 @@
+import sys
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AsyncExitStack
 from typing import TypeVar, overload
 
-from typing_extensions import Concatenate, ParamSpec
+if sys.version_info < (3, 10):
+    from typing_extensions import Concatenate, ParamSpec
+else:
+    from typing import Concatenate, ParamSpec
 
 P = ParamSpec("P")
 T = TypeVar("T")
