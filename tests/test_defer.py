@@ -17,12 +17,13 @@ async def test_defer_async() -> None:
         exited = True
 
     @Defer.defer
-    async def coro(defer: Defer) -> None:
+    async def coro(defer: Defer, a: int) -> int:
         assert not entered
         assert await defer(asynccm()) == 1
         assert entered
+        return a
 
-    await coro()
+    assert await coro(1) == 1
 
     assert exited
 

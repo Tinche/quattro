@@ -82,7 +82,7 @@ class Defer(AsyncExitStack):
         return tuple([await self.enter_async_context(cm) for cm in cms])
 
     @classmethod
-    def defer(cls, function: "Callable[Concatenate[Defer, P], Aw]"):
+    def defer(cls, function: "Callable[Concatenate[Defer, P], Aw]") -> Callable[P, Aw]:
         async def inner(*args, **kwargs):
             defer = cls()
             async with defer:
