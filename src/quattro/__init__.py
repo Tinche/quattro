@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ._defer import Defer
 from ._gather import gather
 from .cancelscope import (
     CancelScope,
@@ -15,6 +16,7 @@ from .taskgroup import TaskGroup
 
 __all__ = [
     "CancelScope",
+    "Defer",
     "TaskGroup",
     "fail_after",
     "fail_at",
