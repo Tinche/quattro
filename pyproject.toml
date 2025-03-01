@@ -37,6 +37,12 @@ lint = [
     "mypy>=0.991",
     "ruff>=0.0.272",
 ]
+docs = [
+    "furo>=2024.8.6",
+    "myst-parser>=3.0.1",
+    "sphinx>=7.4.7",
+    "sphinx-autobuild>=2024.10.3",
+]
 
 [tool.mypy]
 warn_unused_ignores = true

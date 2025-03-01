@@ -21,7 +21,7 @@ Aw = TypeVar("Aw", bound=Awaitable)
 class Defer(AsyncExitStack):
     """A decorator and class to enable deferring functions until the end of a coroutine.
 
-    First, apply the `Defer.defer` decorator to a coroutine function.
+    First, apply the Defer.defer decorator to a coroutine function.
     The coroutine function will receive an instance of `Defer` as its first positional
     argument.
 
@@ -30,15 +30,15 @@ class Defer(AsyncExitStack):
 
     Example:
         >>> from quattro import Defer
-
         >>> @Defer.defer
         ... async def test(defer: Defer) -> None:
         ...     tg = defer(TaskGroup())  # This TaskGroup will be exited after return
         ...
 
     `Defer` is a subclass of `contextlib.AsyncExitStack`, so it supports its full API:
-    * `AsyncExitStack.enter_async_context` (equivalent to just `Defer.__call__` shown
-        above)
+
+    * `AsyncExitStack.enter_async_context` (equivalent to just `Defer.__call__`
+      shown above)
     * `AsyncExitStack.push_async_callback`
     * `AsyncExitStack.push_async_exit`
     * `BaseExitStack.enter_context`

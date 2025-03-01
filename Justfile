@@ -3,3 +3,6 @@ test: ## run tests quickly with the default Python
 
 lint:
 	uv run ruff check src tests && uv run black --check src tests && uv run mypy src tests
+
+docs:
+	cd docs && make html
