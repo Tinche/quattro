@@ -129,4 +129,5 @@ jobs:
         with:
           persist-credentials: false
       - uses: hynek/setup-cached-uv@v2
+      - uses: extractions/setup-just@v2
       - run: uvx --with=tox-uv tox run -e docs
