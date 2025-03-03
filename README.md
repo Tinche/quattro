@@ -9,7 +9,7 @@
 
 ______________________________________________________________________
 
-**quattro** is a typed Python library for advanced task control in _asyncio_ applications.
+**quattro** is a collection of small and powerful components for advanced task control in _asyncio_ applications.
 
 Using _quattro_ gives you:
 

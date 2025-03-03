@@ -3,6 +3,10 @@
 _quattro_ contains a [TaskGroup](https://docs.python.org/3/library/asyncio-task.html#task-groups) subclass with support for background tasks.
 TaskGroups are inspired by [Trio nurseries](https://trio.readthedocs.io/en/stable/reference-core.html#nurseries-and-spawning).
 
+```{admonition} When and where to use
+Use to avoid tedious, manual handling and cancellation of backgroup tasks if you have them.
+```
+
 ```python
 from quattro import TaskGroup
 
@@ -36,7 +40,7 @@ TaskGroups essentially do two things:
 - when exiting from a TaskGroup `async with` block, the TaskGroup awaits all of its children, ensuring they are finished when it exits
 - when a TaskGroup child task raises an exception, all other children and the task inside the context manager are cancelled
 
-### Background Tasks
+## Background Tasks
 
 _quattro_ TaskGroups can be used to start _background tasks_.
 Background tasks are different than normal tasks in that they do not block an exit from the TaskGroup if they aren't finished.

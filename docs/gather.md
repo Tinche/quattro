@@ -3,6 +3,11 @@
 _quattro_ comes with an independent, simple implementation of [`asyncio.gather`](https://docs.python.org/3/library/asyncio-task.html#asyncio.gather) based on Task Groups.
 The _quattro_ version is safer, and uses a task group under the hood to not leak tasks in cases of errors in child tasks.
 
+```{admonition} When and where to use
+Since it's almost a drop-in replacement for [`asyncio.gather()`](https://docs.python.org/3/library/asyncio-task.html#asyncio.gather),
+use everywhere for more predicable handling of failed tasks.
+```
+
 ```python
 from quattro import gather
 

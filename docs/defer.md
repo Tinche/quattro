@@ -14,7 +14,7 @@ require error handling on this layer (but, for example, on higher layers).
 * Use combined with [`contextlib.aclosing`](https://docs.python.org/3/library/contextlib.html#contextlib.aclosing) to ensure any async generators are properly closed.
 ```
 
-# `quattro.Defer`
+## `quattro.Defer`
 
 {class}`Defer` is a helper class for deferring functions and coroutines.
 
