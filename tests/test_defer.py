@@ -1,6 +1,9 @@
 from contextlib import asynccontextmanager, contextmanager
 
+from pytest import raises
+
 from quattro import Defer
+from quattro._defer import defer
 
 
 async def test_defer_async() -> None:
@@ -16,7 +19,7 @@ async def test_defer_async() -> None:
         yield 1
         exited = True
 
-    @Defer.defer
+    @Defer.enable
     async def coro(defer: Defer, a: int) -> int:
         assert not entered
         assert await defer(asynccm()) == 1
@@ -48,7 +51,7 @@ async def test_defer_async_several() -> None:
         yield 2
         exited[1] = True
 
-    @Defer.defer
+    @Defer.enable
     async def coro(defer: Defer) -> None:
         assert not entered[0]
         assert not entered[1]
@@ -75,7 +78,7 @@ async def test_defer_sync_in_async() -> None:
         yield 1
         exited = True
 
-    @Defer.defer
+    @Defer.enable
     async def coro(defer: Defer) -> None:
         assert not entered
         assert defer.enter_context(cm())
@@ -84,3 +87,53 @@ async def test_defer_sync_in_async() -> None:
     await coro()
 
     assert exited
+
+
+async def test_defer() -> None:
+    """The `defer` decorator works."""
+
+    entered = False
+    exited = False
+
+    @asynccontextmanager
+    async def asynccm():
+        nonlocal entered, exited
+        entered = True
+        yield 1
+        exited = True
+
+    @defer.enable
+    async def coro(a: int) -> int:
+        assert not entered
+        assert await defer(asynccm()) == 1
+        assert entered
+        return a
+
+    assert await coro(1) == 1
+
+    assert exited
+
+
+async def test_defer_no_decorator() -> None:
+    """Forgetting the decorator raises."""
+
+    entered = False
+    exited = False
+
+    @asynccontextmanager
+    async def asynccm():
+        nonlocal entered, exited
+        entered = True
+        yield 1
+        exited = True
+
+    async def coro(a: int) -> int:
+        assert not entered
+        with raises(Exception) as exc:
+            assert await defer(asynccm()) == 1
+        raise exc.value
+
+    with raises(Exception) as exc:
+        await coro(1)
+
+    assert "Defer not enabled" in exc.value.args[0]

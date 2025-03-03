@@ -7,6 +7,7 @@
 
 self
 cancelscopes.md
+defer.md
 taskgroups.md
 gather.md
 changelog.md
