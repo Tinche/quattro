@@ -1,0 +1,106 @@
+@import url('https://rsms.me/inter/inter.css');
+
+:root {
+  font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+}
+
+@supports (font-variation-settings: normal) {
+  :root { font-family: InterVariable, sans-serif; }
+}
+
+/* ubuntu-mono-regular - latin */
+@font-face {
+  font-family: "Ubuntu Mono";
+  font-style: normal;
+  font-weight: 400;
+  src: local(""),
+    url("./fonts/ubuntu-mono-v15-latin-regular.woff2") format("woff2"),
+    /* Chrome 26+, Opera 23+, Firefox 39+ */
+      url("./fonts/ubuntu-mono-v15-latin-regular.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* ubuntu-mono-italic - latin */
+@font-face {
+  font-family: "Ubuntu Mono";
+  font-style: italic;
+  font-weight: 400;
+  src: local(""),
+    url("./fonts/ubuntu-mono-v15-latin-italic.woff2") format("woff2"),
+    /* Chrome 26+, Opera 23+, Firefox 39+ */
+      url("./fonts/ubuntu-mono-v15-latin-italic.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* ubuntu-mono-700 - latin */
+@font-face {
+  font-family: "Ubuntu Mono";
+  font-style: normal;
+  font-weight: 700;
+  src: local(""), url("./fonts/ubuntu-mono-v15-latin-700.woff2") format("woff2"),
+    /* Chrome 26+, Opera 23+, Firefox 39+ */
+      url("./fonts/ubuntu-mono-v15-latin-700.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* ubuntu-mono-700italic - latin */
+@font-face {
+  font-family: "Ubuntu Mono";
+  font-style: italic;
+  font-weight: 700;
+  src: local(""),
+    url("./fonts/ubuntu-mono-v15-latin-700italic.woff2") format("woff2"),
+    /* Chrome 26+, Opera 23+, Firefox 39+ */
+      url("./fonts/ubuntu-mono-v15-latin-700italic.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+h2,
+h3 {
+  margin-bottom: 0.5em;
+  margin-top: 2rem;
+}
+
+:target > h1:first-of-type,
+:target > h2:first-of-type,
+:target > h3:first-of-type,
+span:target ~ h1:first-of-type,
+span:target ~ h2:first-of-type,
+span:target ~ h3:first-of-type,
+span:target ~ h4:first-of-type,
+span:target ~ h5:first-of-type,
+span:target ~ h6:first-of-type {
+  text-decoration: underline dashed;
+  text-decoration-thickness: 1px;
+}
+
+div.article-container > article {
+  font-size: 17px;
+  line-height: 31px;
+}
+
+div.admonition {
+  font-size: 15px;
+  line-height: 27px;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+p.admonition-title {
+  font-size: 15px !important;
+  line-height: 20px !important;
+}
+
+article > li > a {
+  font-size: 19px;
+  line-height: 31px;
+}
+
+div.tab-set {
+  margin-top: 1em;
+  margin-bottom: 2em;
+}
+
+div.tab-set pre {
+  padding: 1.25em;
+}
+
+body .highlight.only_dark {
+  background: #18181a;
+}

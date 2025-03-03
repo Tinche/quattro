@@ -99,24 +99,35 @@ jobs:
           valColorRange: ${{ env.total }}
 
   package:
-      name: "Build & verify package"
-      runs-on: "ubuntu-latest"
+    name: "Build & verify package"
+    runs-on: "ubuntu-latest"
 
-      steps:
-        - uses: "actions/checkout@v4"
-          with:
-            persist-credentials: false
+    steps:
+      - uses: "actions/checkout@v4"
+        with:
+          persist-credentials: false
 
-        - uses: hynek/setup-cached-uv@v2
+      - uses: hynek/setup-cached-uv@v2
 
-        - name: "Build package"
-          run: "uv run --with build -m build"
+      - name: "Build package"
+        run: "uv run --with build -m build"
 
-        - name: "List result"
-          run: "ls -l dist"
+      - name: "List result"
+        run: "ls -l dist"
 
-        - name: "Check wheel contents"
-          run: "uvx check-wheel-contents dist/*.whl"
+      - name: "Check wheel contents"
+        run: "uvx check-wheel-contents dist/*.whl"
 
-        - name: "Check long_description"
-          run: "uvx twine check dist/*"
+      - name: "Check long_description"
+        run: "uvx twine check dist/*"
+
+  docs:
+    name: Build docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v4"
+        with:
+          persist-credentials: false
+      - uses: hynek/setup-cached-uv@v2
+      - uses: extractions/setup-just@v2
+      - run: uvx --with=tox-uv tox run -e docs

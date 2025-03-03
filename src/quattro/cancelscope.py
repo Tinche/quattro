@@ -19,7 +19,10 @@ _is_311_or_later: Final = sys.version_info >= (3, 11)
 @define
 class CancelScope:
     _deadline: Optional[float] = None
+
     cancelled_caught: bool = field(default=False, init=False)
+    """Whether the scope finished by cancellation or not."""
+
     _current_task: Union[Task, None, Literal["done"]] = field(default=None, init=False)
     _timeout_handler: Union[TimerHandle, Handle, None] = field(default=None, init=False)
     _cancel_status: Literal["prequeued", "none", "called"] = field(

@@ -1,7 +1,8 @@
 import sys
 from collections.abc import Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, AsyncExitStack
-from typing import TypeVar, overload
+from contextvars import ContextVar
+from typing import Final, TypeVar, Union, overload
 
 if sys.version_info < (3, 10):
     from typing_extensions import Concatenate, ParamSpec
@@ -21,7 +22,7 @@ Aw = TypeVar("Aw", bound=Awaitable)
 class Defer(AsyncExitStack):
     """A decorator and class to enable deferring functions until the end of a coroutine.
 
-    First, apply the `Defer.defer` decorator to a coroutine function.
+    First, apply the Defer.defer decorator to a coroutine function.
     The coroutine function will receive an instance of `Defer` as its first positional
     argument.
 
@@ -30,15 +31,15 @@ class Defer(AsyncExitStack):
 
     Example:
         >>> from quattro import Defer
-
-        >>> @Defer.defer
+        >>> @Defer.enable
         ... async def test(defer: Defer) -> None:
         ...     tg = defer(TaskGroup())  # This TaskGroup will be exited after return
         ...
 
     `Defer` is a subclass of `contextlib.AsyncExitStack`, so it supports its full API:
-    * `AsyncExitStack.enter_async_context` (equivalent to just `Defer.__call__` shown
-        above)
+
+    * `AsyncExitStack.enter_async_context` (equivalent to just `Defer.__call__`
+      shown above)
     * `AsyncExitStack.push_async_callback`
     * `AsyncExitStack.push_async_exit`
     * `BaseExitStack.enter_context`
@@ -113,8 +114,8 @@ class Defer(AsyncExitStack):
         return tuple([await self.enter_async_context(cm) for cm in cms])
 
     @classmethod
-    def defer(cls, function: "Callable[Concatenate[Defer, P], Aw]") -> Callable[P, Aw]:
-        """A decorator to be applied to a coroutine function.
+    def enable(cls, function: "Callable[Concatenate[Defer, P], Aw]") -> Callable[P, Aw]:
+        """A decorator to be applied to a coroutine function, enabling the use of Defer.
 
         The coroutine function should receive an instance of `Defer` as its first
         positional argument; this will be provided by `Defer`.
@@ -126,3 +127,94 @@ class Defer(AsyncExitStack):
                 return await function(defer, *args, **kwargs)
 
         return inner
+
+
+_ACTIVE_DEFER: Final[ContextVar[Union[Defer, None]]] = ContextVar(
+    "_ACTIVE_DEFER", default=None
+)
+
+
+class _defer:  # noqa: N801
+    """Call to defer a context manager after applying `@defer.enable` to a coroutine
+    function.
+    """
+
+    @staticmethod
+    def enable(function: Callable[P, Aw]) -> Callable[P, Aw]:
+        """Use as a decorator on a coroutine function to enable the use of `defer`."""
+
+        async def inner(*args, **kwargs):
+            defer = Defer()
+            token = _ACTIVE_DEFER.set(defer)
+            try:
+                async with defer:
+                    return await function(*args, **kwargs)
+            finally:
+                _ACTIVE_DEFER.reset(token)
+
+        return inner
+
+    @overload
+    async def __call__(self, cm: AbstractAsyncContextManager[T], /) -> T: ...
+
+    @overload
+    async def __call__(
+        self,
+        cm: AbstractAsyncContextManager[T],
+        cm2: AbstractAsyncContextManager[T2],
+        /,
+    ) -> tuple[T, T2]: ...
+
+    @overload
+    async def __call__(
+        self,
+        cm: AbstractAsyncContextManager[T],
+        cm2: AbstractAsyncContextManager[T2],
+        cm3: AbstractAsyncContextManager[T3],
+        /,
+    ) -> tuple[T, T2, T3]: ...
+
+    @overload
+    async def __call__(
+        self,
+        cm: AbstractAsyncContextManager[T],
+        cm2: AbstractAsyncContextManager[T2],
+        cm3: AbstractAsyncContextManager[T3],
+        cm4: AbstractAsyncContextManager[T4],
+        /,
+    ) -> tuple[T, T2, T3, T4]: ...
+
+    @overload
+    async def __call__(
+        self,
+        cm: AbstractAsyncContextManager[T],
+        cm2: AbstractAsyncContextManager[T2],
+        cm3: AbstractAsyncContextManager[T3],
+        cm4: AbstractAsyncContextManager[T4],
+        cm5: AbstractAsyncContextManager[T5],
+        /,
+    ) -> tuple[T, T2, T3, T4, T5]: ...
+
+    @overload
+    async def __call__(
+        self,
+        cm: AbstractAsyncContextManager[T],
+        cm2: AbstractAsyncContextManager[T2],
+        cm3: AbstractAsyncContextManager[T3],
+        cm4: AbstractAsyncContextManager[T4],
+        cm5: AbstractAsyncContextManager[T5],
+        cm6: AbstractAsyncContextManager[T6],
+        /,
+    ) -> tuple[T, T2, T3, T4, T5, T6]: ...
+
+    async def __call__(self, *args):
+        active = _ACTIVE_DEFER.get()
+        if active is None:
+            raise Exception(
+                "Defer not enabled, did you forget to apply `@defer.enable`?"
+            )
+        return await active(*args)
+
+
+defer: Final = _defer()
+"""First wrap your coroutine function with `defer.enable`, then call me inside."""
