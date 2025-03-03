@@ -134,20 +134,14 @@ _ACTIVE_DEFER: Final[ContextVar[Union[Defer, None]]] = ContextVar(
 )
 
 
-async def _call_active_defer(*args) -> Defer:
-    active = _ACTIVE_DEFER.get()
-    if active is None:
-        raise Exception("Defer not enabled, did you forget to apply `@defer.enable`?")
-    return await active(*args)
+class _defer:  # noqa: N801
+    """Call to defer a context manager after applying `@defer.enable` to a coroutine
+    function.
+    """
 
-
-class _MagicDefer:
     @staticmethod
     def enable(function: Callable[P, Aw]) -> Callable[P, Aw]:
-        """Use as a decorator on a coroutine function to enable the use of `defer`"""
-        for k, v in function.__globals__.items():
-            if v == defer:
-                function.__globals__[k] = _call_active_defer
+        """Use as a decorator on a coroutine function to enable the use of `defer`."""
 
         async def inner(*args, **kwargs):
             defer = Defer()
@@ -213,8 +207,14 @@ class _MagicDefer:
         /,
     ) -> tuple[T, T2, T3, T4, T5, T6]: ...
 
-    def __call__(self, *args):
-        raise Exception("Defer not enabled, did you forget to apply `@defer.enable`?")
+    async def __call__(self, *args):
+        active = _ACTIVE_DEFER.get()
+        if active is None:
+            raise Exception(
+                "Defer not enabled, did you forget to apply `@defer.enable`?"
+            )
+        return await active(*args)
 
 
-defer: Final = _MagicDefer()
+defer: Final = _defer()
+"""First wrap your coroutine function with `defer.enable`, then call me inside."""
