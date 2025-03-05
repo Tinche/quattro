@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from ._defer import Defer, defer
-from ._gather import gather
-from .cancelscope import (
+from typing import Final
+
+from ._cancelscope import (
     CancelScope,
     cancel_stack,
     fail_after,
@@ -12,11 +12,13 @@ from .cancelscope import (
     move_on_after,
     move_on_at,
 )
-from .taskgroup import TaskGroup
+from ._defer import Deferrer, _defer
+from ._gather import gather
+from ._taskgroup import TaskGroup
 
 __all__ = [
     "CancelScope",
-    "Defer",
+    "Deferrer",
     "TaskGroup",
     "defer",
     "fail_after",
@@ -33,3 +35,8 @@ def get_current_effective_deadline() -> float:
         [cs._deadline for cs in cancel_stack.get() if cs._deadline is not None],
         default=float("inf"),
     )
+
+
+# This needs to be here for Sphinx.
+defer: Final = _defer()
+"""First wrap your coroutine function with `defer.enable`, then call me inside."""

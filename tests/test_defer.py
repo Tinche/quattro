@@ -2,8 +2,7 @@ from contextlib import asynccontextmanager, contextmanager
 
 from pytest import raises
 
-from quattro import Defer
-from quattro._defer import defer
+from quattro import Deferrer, defer
 
 
 async def test_defer_async() -> None:
@@ -19,8 +18,8 @@ async def test_defer_async() -> None:
         yield 1
         exited = True
 
-    @Defer.enable
-    async def coro(defer: Defer, a: int) -> int:
+    @Deferrer.enable
+    async def coro(defer: Deferrer, a: int) -> int:
         assert not entered
         assert await defer(asynccm()) == 1
         assert entered
@@ -51,8 +50,8 @@ async def test_defer_async_several() -> None:
         yield 2
         exited[1] = True
 
-    @Defer.enable
-    async def coro(defer: Defer) -> None:
+    @Deferrer.enable
+    async def coro(defer: Deferrer) -> None:
         assert not entered[0]
         assert not entered[1]
         assert await defer(asynccm(), asynccm2()) == (1, 2)
@@ -78,8 +77,8 @@ async def test_defer_sync_in_async() -> None:
         yield 1
         exited = True
 
-    @Defer.enable
-    async def coro(defer: Defer) -> None:
+    @Deferrer.enable
+    async def coro(defer: Deferrer) -> None:
         assert not entered
         assert defer.enter_context(cm())
         assert entered

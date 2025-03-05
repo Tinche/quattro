@@ -1,12 +1,12 @@
+import sys
 from asyncio import CancelledError, current_task, get_running_loop, sleep
 from asyncio import gather as asyncio_gather
-from contextlib import suppress
 
 from pytest import mark, raises
 
 from quattro import gather
 
-with suppress(ImportError):
+if sys.version_info < (3, 11):
     from exceptiongroup import ExceptionGroup
 
 

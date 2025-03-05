@@ -11,7 +11,7 @@ from time import monotonic, time
 import pytest
 
 from quattro import CancelScope, fail_after
-from quattro.cancelscope import _is_311_or_later
+from quattro._cancelscope import _is_311_or_later
 
 
 async def test_fail_after():

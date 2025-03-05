@@ -19,24 +19,25 @@ T6 = TypeVar("T6")
 Aw = TypeVar("Aw", bound=Awaitable)
 
 
-class Defer(AsyncExitStack):
+class Deferrer(AsyncExitStack):
     """A decorator and class to enable deferring functions until the end of a coroutine.
 
-    First, apply the Defer.defer decorator to a coroutine function.
-    The coroutine function will receive an instance of `Defer` as its first positional
-    argument.
+    First, apply the Deferrer.enable decorator to a coroutine function.
+    The coroutine function will receive an instance of `Deferrer` as its first
+    positional argument.
 
-    This instance of `Defer` can be used to enter async context managers; these context
-    managers will be exited after the coroutine finishes.
+    This instance of `Deferrer` can be used to enter async context managers; these
+    context managers will be exited after the coroutine finishes.
 
     Example:
-        >>> from quattro import Defer
-        >>> @Defer.enable
-        ... async def test(defer: Defer) -> None:
+        >>> from quattro import Deferrer
+        >>> @Deferrer.enable
+        ... async def test(defer: Deferrer) -> None:
         ...     tg = defer(TaskGroup())  # This TaskGroup will be exited after return
         ...
 
-    `Defer` is a subclass of `contextlib.AsyncExitStack`, so it supports its full API:
+    `Deferrer` is a subclass of `contextlib.AsyncExitStack`, so it supports its full
+    API:
 
     * `AsyncExitStack.enter_async_context` (equivalent to just `Defer.__call__`
       shown above)
@@ -114,7 +115,9 @@ class Defer(AsyncExitStack):
         return tuple([await self.enter_async_context(cm) for cm in cms])
 
     @classmethod
-    def enable(cls, function: "Callable[Concatenate[Defer, P], Aw]") -> Callable[P, Aw]:
+    def enable(
+        cls, function: "Callable[Concatenate[Deferrer, P], Aw]"
+    ) -> Callable[P, Aw]:
         """A decorator to be applied to a coroutine function, enabling the use of Defer.
 
         The coroutine function should receive an instance of `Defer` as its first
@@ -129,7 +132,7 @@ class Defer(AsyncExitStack):
         return inner
 
 
-_ACTIVE_DEFER: Final[ContextVar[Union[Defer, None]]] = ContextVar(
+_ACTIVE_DEFER: Final[ContextVar[Union[Deferrer, None]]] = ContextVar(
     "_ACTIVE_DEFER", default=None
 )
 
@@ -144,7 +147,7 @@ class _defer:  # noqa: N801
         """Use as a decorator on a coroutine function to enable the use of `defer`."""
 
         async def inner(*args, **kwargs):
-            defer = Defer()
+            defer = Deferrer()
             token = _ACTIVE_DEFER.set(defer)
             try:
                 async with defer:
@@ -214,7 +217,3 @@ class _defer:  # noqa: N801
                 "Defer not enabled, did you forget to apply `@defer.enable`?"
             )
         return await active(*args)
-
-
-defer: Final = _defer()
-"""First wrap your coroutine function with `defer.enable`, then call me inside."""

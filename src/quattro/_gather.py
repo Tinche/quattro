@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Coroutine
 from typing import Any, Literal, TypeVar, overload
 
-from .taskgroup import TaskGroup
+from ._taskgroup import TaskGroup
 
 # Type hints taken from https://github.com/python/typeshed/blob/main/stdlib/asyncio/tasks.pyi,
 # bless their hearts.
