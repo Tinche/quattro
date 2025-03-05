@@ -6,9 +6,19 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+from importlib import metadata
+
 project = "quattro"
 copyright = "2025, Tin Tvrtkovic"
 author = "Tin Tvrtkovic"
+
+# The full version, including alpha/beta/rc tags.
+release = metadata.version("quattro")
+# The short X.Y version.
+version = release.rsplit(".", 1)[0]
+
+if "dev" in release:
+    release = version = "UNRELEASED"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
