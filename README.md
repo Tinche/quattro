@@ -5,7 +5,7 @@
 [![PyPI](https://img.shields.io/pypi/v/quattro.svg)](https://pypi.python.org/pypi/quattro)
 [![Build](https://github.com/Tinche/quattro/workflows/CI/badge.svg?branch=main)](https://github.com/Tinche/quattro/actions?workflow=CI)
 [![Supported Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FTinche%2Fquattro%2Fmain%2Fpyproject.toml)](https://github.com/Tinche/quattro)
-[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Tinche/87277dd3077fb1eefebc5d4f71b4c4b7/raw/covbadge.json)](https://github.com/Tinche/quattro/actions/workflows/main.yml)
+[![Coverage](https://img.shields.io/badge/Coverage-100%25-green)](https://github.com/Tinche/quattro/actions/workflows/ci.yml)
 
 ______________________________________________________________________
 
