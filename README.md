@@ -1,4 +1,4 @@
-# **quattro**: four-wheel drive for asyncio
+# **quattro**: Four-wheel drive for asyncio.
 
 [![Documentation](https://img.shields.io/badge/Docs-Read%20The%20Docs-black)](https://quattro.threeofwands.com)
 [![License: Apache2](https://img.shields.io/badge/license-Apache2-C06524)](https://github.com/Tinche/uapi/blob/main/LICENSE)

@@ -2,6 +2,12 @@
 ```
 # Welcome to quattro!
 
+*Four-wheel drive for asyncio.*
+
+Release **{sub-ref}`release`**  ([What's new?](https://github.com/Tinche/quattro/blob/main/CHANGELOG.md))
+
+---
+
 ```{toctree}
 :maxdepth: 1
 :caption: "Contents"
