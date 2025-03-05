@@ -24,7 +24,7 @@ _quattro_ contains the following helpers:
 ```{admonition} When and where to use
 * Use to make use of deadlines, which are more powerful than timeouts since they affect
 groups of operations.
-* Use to gain access to {meth}`current_effective_deadline`, which enables deadline propagation
+* Use to gain access to {meth}`get_current_effective_deadline`, which enables deadline propagation
 between services.
 ```
 

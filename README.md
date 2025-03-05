@@ -14,7 +14,7 @@ ______________________________________________________________________
 Using _quattro_ gives you:
 
 - elegant context managers for **deadlines and cancellation**: `fail_after`, `fail_at`, `move_on_after` and `move_on_at`.
-- a `Defer` decorator to help with **indentation and resource cleanup**, like in Go.
+- a `Deferrer` class and `defer` function to help with **indentation and resource cleanup**, like in Go.
 - a TaskGroup subclass with support for **background tasks**.
 - a **safer** `gather` implementation.
 

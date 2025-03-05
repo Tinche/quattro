@@ -1,3 +1,5 @@
+```{currentmodule} quattro
+```
 # Welcome to quattro!
 
 ```{toctree}
@@ -36,11 +38,13 @@ PyPI <https://pypi.org/project/quattro/>
 GitHub <https://github.com/Tinche/quattro>
 ```
 
-_quattro_ is a powerful toolkit for writing robust and readable asyncio code on Python 3.9 and later.
+**quattro** is a collection of small and powerful components for advanced task control in _asyncio_ applications.
 
-_quattro_ is a collection of mostly independent building blocks:
+Using _quattro_ gives you:
 
-* [Cancel scopes](cancelscopes.md), for easy and robust deadlines and timeouts.
-* [Defer tools](defer.md), for robust and readable handling of resources.
-* [TaskGroups](taskgroups.md), for structured concurrency.
-* A safer [`gather` implementation](gather.md), for concurrent requests.
+- [elegant context managers](cancelscopes.md) for **deadlines and cancellation**: {meth}`fail_after`, {meth}`fail_at`, {meth}`move_on_after` and {meth}`move_on_at`.
+- a [`Deferrer` class](defer.md#quattrodeferrer) and [`defer()`](defer.md#quattrodefer) function to help with **indentation and resource cleanup**, like in Go.
+- a [TaskGroup subclass](taskgroups.md) with support for **background tasks**.
+- a **safer** [`gather()` implementation](gather.md).
+
+_quattro_ is influenced by structured concurrency concepts from the [Trio framework](https://trio.readthedocs.io/en/stable/).
