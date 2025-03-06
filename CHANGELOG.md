@@ -12,7 +12,7 @@ The **third number** is for emergencies when we need to start branches for older
 
 <!-- changelog follows -->
 
-## 25.2.0 (UNRELEASED)
+## 25.2.0 (2025-03-06)
 
 - Introduce {class}`Deferrer` and {meth}`defer`.
   ([#18](https://github.com/Tinche/quattro/pull/18))
