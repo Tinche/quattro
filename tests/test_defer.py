@@ -113,6 +113,58 @@ async def test_defer() -> None:
     assert exited
 
 
+async def test_defer_nested() -> None:
+    """The `defer` decorator works on nested coroutines."""
+
+    entered = False
+    entered2 = False
+    exited = False
+    exited2 = False
+
+    @asynccontextmanager
+    async def asynccm():
+        nonlocal entered, exited
+        entered = True
+        yield 1
+        exited = True
+
+    @asynccontextmanager
+    async def asynccm2():
+        nonlocal entered2, exited2
+        entered2 = True
+        yield 2
+        exited2 = True
+
+    @defer.enable
+    async def coro(a: int) -> int:
+        assert not entered
+        assert await defer(asynccm()) == 1
+        assert entered
+        return a
+
+    @defer.enable
+    async def coro2(b: int) -> int:
+        assert not entered
+        assert not entered2
+        assert await defer(asynccm2()) == 2
+        assert not entered
+        assert entered2
+
+        assert not exited
+        assert not exited2
+
+        await coro(b)
+
+        assert exited
+        assert not exited2
+        return b
+
+    assert await coro2(1) == 1
+
+    assert exited
+    assert exited2
+
+
 async def test_defer_no_decorator() -> None:
     """Forgetting the decorator raises."""
 
