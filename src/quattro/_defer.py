@@ -1,7 +1,12 @@
 import sys
 from collections.abc import Awaitable, Callable
-from contextlib import AbstractAsyncContextManager, AsyncExitStack
+from contextlib import (
+    AbstractAsyncContextManager,
+    AbstractContextManager,
+    AsyncExitStack,
+)
 from contextvars import ContextVar
+from functools import wraps
 from typing import Final, TypeVar, Union, overload
 
 if sys.version_info < (3, 10):
@@ -140,12 +145,15 @@ _ACTIVE_DEFER: Final[ContextVar[Union[Deferrer, None]]] = ContextVar(
 class _defer:  # noqa: N801
     """Call to defer a context manager after applying `@defer.enable` to a coroutine
     function.
+
+    Also supports `defer.enter_context` for sync context managers.
     """
 
     @staticmethod
     def enable(function: Callable[P, Aw]) -> Callable[P, Aw]:
         """Use as a decorator on a coroutine function to enable the use of `defer`."""
 
+        @wraps(function)
         async def inner(*args, **kwargs):
             defer = Deferrer()
             token = _ACTIVE_DEFER.set(defer)
@@ -217,3 +225,16 @@ class _defer:  # noqa: N801
                 "Defer not enabled, did you forget to apply `@defer.enable`?"
             )
         return await active(*args)
+
+    def enter_context(self, cm: AbstractContextManager[T]) -> T:
+        """Enter the given (sync) context manager and schedule its __exit__.
+
+        Returns:
+            The result of entering the context manager.
+        """
+        active = _ACTIVE_DEFER.get()
+        if active is None:
+            raise Exception(
+                "Defer not enabled, did you forget to apply `@defer.enable`?"
+            )
+        return active.enter_context(cm)

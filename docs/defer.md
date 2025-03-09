@@ -89,7 +89,8 @@ async def my_coroutine_function(defer: Deferrer, a: int) -> str:
 {meth}`quattro.defer` is a more magical and more succint version of {class}`quattro.Deferrer`.
 
 ```{admonition} When and where to use
-When you want to defer with a little less typing, more readability and less type-safety.
+- When you want to defer with a little less typing, more readability and less type-safety.
+- When you need to have a clean function signature, maybe for use with a CLI library that requires it.
 ```
 
 Apply the {meth}`defer.enable <quattro.defer.enable>` decorator to a coroutine function, and then call {meth}`defer` inside.
@@ -100,6 +101,17 @@ from quattro import defer
 @defer.enable
 async def my_coroutine_function(a: int) -> str:
     defer(TaskGroup())
+    await sleep(1)
+    return str(a)
+```
+
+`quattro.defer` also supports `AsyncExitStack`s `enter_context` method,
+for dealing with non-async context managers.
+
+```python
+@defer.enable
+async def my_coroutine_function(a: int) -> str:
+    defer.enter_context(fail_after(5))  # `fail_after` is a sync context manager.
     await sleep(1)
     return str(a)
 ```

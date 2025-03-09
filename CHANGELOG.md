@@ -12,6 +12,13 @@ The **third number** is for emergencies when we need to start branches for older
 
 <!-- changelog follows -->
 
+## Next (UNRELEASED)
+
+- {meth}`defer` now also supports [`enter_context`](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack.enter_context) for sync context managers.
+  ([#23](https://github.com/Tinche/quattro/pull/23))
+- {meth}`defer` now properly preserves the coroutine function signature.
+  ([#23](https://github.com/Tinche/quattro/pull/23))
+
 ## 25.2.0 (2025-03-06)
 
 - Introduce {class}`Deferrer` and {meth}`defer`.

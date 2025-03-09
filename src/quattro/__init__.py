@@ -39,4 +39,9 @@ def get_current_effective_deadline() -> float:
 
 # This needs to be here for Sphinx.
 defer: Final = _defer()
-"""First wrap your coroutine function with `defer.enable`, then call me inside."""
+"""First wrap your coroutine function with `defer.enable`, then call me inside.
+
+Additionally, `defer` has the following methods:
+
+- `enter_context`
+"""
