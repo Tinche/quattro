@@ -89,7 +89,8 @@ async def my_coroutine_function(defer: Deferrer, a: int) -> str:
 {meth}`quattro.defer` is a more magical and more succint version of {class}`quattro.Deferrer`.
 
 ```{admonition} When and where to use
-When you want to defer with a little less typing, more readability and less type-safety.
+- When you want to defer with a little less typing, more readability and less type-safety.
+- When you need to have a clean function signature, maybe for use with a CLI library that requires it.
 ```
 
 Apply the {meth}`defer.enable <quattro.defer.enable>` decorator to a coroutine function, and then call {meth}`defer` inside.

@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager, contextmanager
+from inspect import signature
 
 from pytest import raises
 
@@ -220,3 +221,16 @@ async def test_defer_sync() -> None:
     assert await coro(1) == 1
 
     assert exited
+
+
+async def test_defer_wraps() -> None:
+    """The `defer` decorator handles proxying the signature."""
+
+    async def coro(a: int) -> int:
+        return a
+
+    old_coro = coro
+
+    coro = defer.enable(coro)
+
+    assert signature(coro) == signature(old_coro)

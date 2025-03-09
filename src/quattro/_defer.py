@@ -6,6 +6,7 @@ from contextlib import (
     AsyncExitStack,
 )
 from contextvars import ContextVar
+from functools import wraps
 from typing import Final, TypeVar, Union, overload
 
 if sys.version_info < (3, 10):
@@ -152,6 +153,7 @@ class _defer:  # noqa: N801
     def enable(function: Callable[P, Aw]) -> Callable[P, Aw]:
         """Use as a decorator on a coroutine function to enable the use of `defer`."""
 
+        @wraps(function)
         async def inner(*args, **kwargs):
             defer = Deferrer()
             token = _ACTIVE_DEFER.set(defer)
