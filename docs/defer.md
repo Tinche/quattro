@@ -104,6 +104,17 @@ async def my_coroutine_function(a: int) -> str:
     return str(a)
 ```
 
+`quattro.defer` also supports `AsyncExitStack`s `enter_context` method,
+for dealing with non-async context managers.
+
+```python
+@defer.enable
+async def my_coroutine_function(a: int) -> str:
+    defer.enter_context(fail_after(5))  # `fail_after` is a sync context manager.
+    await sleep(1)
+    return str(a)
+```
+
 ```{warning}
 Do not mix {meth}`defer` and {class}`Deferrer` in the same coroutine function; pick one or the other.
 ```

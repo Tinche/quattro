@@ -168,23 +168,55 @@ async def test_defer_nested() -> None:
 async def test_defer_no_decorator() -> None:
     """Forgetting the decorator raises."""
 
-    entered = False
-    exited = False
-
     @asynccontextmanager
     async def asynccm():
-        nonlocal entered, exited
-        entered = True
         yield 1
-        exited = True
 
     async def coro(a: int) -> int:
-        assert not entered
         with raises(Exception) as exc:
-            assert await defer(asynccm()) == 1
+            await defer(asynccm())
         raise exc.value
 
     with raises(Exception) as exc:
         await coro(1)
 
     assert "Defer not enabled" in exc.value.args[0]
+
+    @contextmanager
+    def synccm():
+        yield 1
+
+    async def coro2(a: int) -> int:
+        with raises(Exception) as exc:
+            defer.enter_context(synccm())
+        raise exc.value
+
+    with raises(Exception) as exc:
+        await coro2(1)
+
+    assert "Defer not enabled" in exc.value.args[0]
+
+
+async def test_defer_sync() -> None:
+    """The `defer` decorator can handle sync context managers."""
+
+    entered = False
+    exited = False
+
+    @contextmanager
+    def synccm():
+        nonlocal entered, exited
+        entered = True
+        yield 1
+        exited = True
+
+    @defer.enable
+    async def coro(a: int) -> int:
+        assert not entered
+        assert defer.enter_context(synccm()) == 1
+        assert entered
+        return a
+
+    assert await coro(1) == 1
+
+    assert exited
