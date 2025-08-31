@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: hynek/setup-cached-uv@757bedc3f972eb7227a1aa657651f15a8527c817  # v2.3.0
+      - uses: hynek/build-and-inspect-python-package@c52c3a4710070b50470d903818a7b25115dcd076  # v2.13.0
 
   # Upload to Test PyPI on every commit on main.
   release-test-pypi:
@@ -48,7 +48,7 @@ jobs:
           path: dist
 
       - name: Upload package to Test PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc  # v1.12.4
         with:
           repository-url: https://test.pypi.org/legacy/
 
@@ -71,4 +71,4 @@ jobs:
           path: dist
 
       - name: Upload package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc  # v1.12.4
