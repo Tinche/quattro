@@ -4,13 +4,13 @@
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 SPHINXOPTS    ?=
-SPHINXBUILD   ?= uv run sphinx-build
+SPHINXBUILD   ?= uv run --group docs sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
 
 # Put it first so that "make" without argument is like "make help".
 help:
-	uv run @$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	uv run --group docs @$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 .PHONY: help Makefile
 
@@ -20,10 +20,10 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 apidoc:
-	uv run sphinx-apidoc -o . ../src/quattro -f
+	uv run --group docs sphinx-apidoc -o . ../src/quattro -f
 
 
 ## htmllive       to rebuild and reload HTML files in your browser
 .PHONY: htmllive
 htmllive:
-	uv run sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	uv run --group docs sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
