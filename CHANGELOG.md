@@ -18,6 +18,8 @@ The **third number** is for emergencies when we need to start branches for older
   ([#23](https://github.com/Tinche/quattro/pull/23))
 - {meth}`defer` now properly preserves the coroutine function signature.
   ([#23](https://github.com/Tinche/quattro/pull/23))
+- Add support for Python 3.14.
+  ([#27](https://github.com/Tinche/quattro/pull/27))
 
 ## 25.2.0 (2025-03-06)
 
