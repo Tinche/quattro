@@ -34,7 +34,6 @@ test = [
     "coverage",
 ]
 lint = [
-    "black",
     "mypy>=0.991",
     "ruff>=0.0.272",
 ]
