@@ -2,9 +2,9 @@ python := ""
 covcleanup := "true"
 
 lint:
-	uv run -p python3.13 --group lint ruff check src/ tests bench
-	uv run -p python3.13 --group lint black --check src tests docs/conf.py
-	uv run -p python3.13 --group lint mypy src tests 
+	uv run -p python3.13 --group lint ruff check src/ tests
+	uv run -p python3.13 --group lint ruff format --check src tests docs/conf.py
+	uv run -p python3.13 --group lint --group test mypy src tests 
 
 test *args="-x --ff tests":
     uv run {{ if python != '' { '-p ' + python } else { '' } }} --all-extras --group test pytest {{args}}
