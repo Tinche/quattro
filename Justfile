@@ -1,6 +1,9 @@
 python := ""
 covcleanup := "true"
 
+sync version="3.13":
+    uv sync -p python{{version}} --all-groups --all-extras
+
 lint:
 	uv run -p python3.13 --group lint ruff check src/ tests
 	uv run -p python3.13 --group lint ruff format --check src tests docs/conf.py

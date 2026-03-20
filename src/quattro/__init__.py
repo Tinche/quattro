@@ -14,17 +14,21 @@ from ._cancelscope import (
 )
 from ._defer import Deferrer, _defer
 from ._gather import gather
+from ._merge import Ticker, Timer, merge
 from ._taskgroup import TaskGroup
 
 __all__ = [
     "CancelScope",
     "Deferrer",
     "TaskGroup",
+    "Ticker",
+    "Timer",
     "defer",
     "fail_after",
     "fail_at",
     "gather",
     "get_current_effective_deadline",
+    "merge",
     "move_on_after",
     "move_on_at",
 ]

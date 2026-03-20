@@ -14,8 +14,6 @@ if sys.version_info < (3, 11):
 else:
     from asyncio.taskgroups import TaskGroup as _TaskGroup
 
-__all__ = ["TaskGroup"]
-
 T = TypeVar("T")
 
 
