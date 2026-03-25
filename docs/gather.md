@@ -3,7 +3,8 @@
 # `quattro.gather`
 
 _quattro_ comes with an independent, simple implementation of [`asyncio.gather()`](https://docs.python.org/3/library/asyncio-task.html#asyncio.gather) based on Task Groups.
-The _quattro_ version is safer, and uses a task group under the hood to not leak tasks in cases of errors in child tasks.
+The _quattro_ version supports limiting concurrency, is safer,
+and uses a task group under the hood to not leak tasks in cases of errors in child tasks.
 
 ```{admonition} When and where to use
 Since it's almost a drop-in replacement for [`asyncio.gather()`](https://docs.python.org/3/library/asyncio-task.html#asyncio.gather),
@@ -30,6 +31,18 @@ async def my_handler():
     )
 
     # res_1 and res_2 may be instances of exceptions.
+```
+
+The `concurrency_limit` argument can be used to limit how many child tasks execute in parallel.
+
+```python
+from quattro import gather
+
+async def my_handler():
+    res = await gather(
+        *(fetch_page(url) for url in urls),
+        concurrency_limit=10,
+    )
 ```
 
 The differences to `asyncio.gather()` are:

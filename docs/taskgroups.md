@@ -5,6 +5,7 @@ TaskGroups are inspired by [Trio nurseries](https://trio.readthedocs.io/en/stabl
 
 ```{admonition} When and where to use
 Use to avoid tedious, manual handling and cancellation of backgroup tasks if you have them.
+Use to avoid manual handling of semaphores when tasks need to run with limited parallelism.
 ```
 
 ```python
@@ -26,7 +27,8 @@ async def my_handler():
         t2 = tg.create_task(task_2)
         tg.create_background_task(background_task)
 
-    # The end of the `async with` block awaits the tasks, ensuring they are handled.
+    # The end of the `async with` block awaits the non-background tasks, ensuring they are handled.
+    # The background task gets cancelled instead.
 ```
 
 TaskGroups are essential building blocks for achieving the concept of [structured concurrency](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/).
@@ -39,6 +41,15 @@ TaskGroups essentially do two things:
 
 - when exiting from a TaskGroup `async with` block, the TaskGroup awaits all of its children, ensuring they are finished when it exits
 - when a TaskGroup child task raises an exception, all other children and the task inside the context manager are cancelled
+
+You can also pass `concurrency_limit` to cap how many non-background tasks from the group can execute simultaneously.
+Background tasks created with `create_background_task()` are not counted against that limit.
+
+```python
+async with TaskGroup(concurrency_limit=10) as tg:
+    for item in items:
+        tg.create_task(process(item))
+```
 
 ## Background Tasks
 

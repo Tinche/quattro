@@ -143,3 +143,26 @@ async def test_parent_cancelled_return_excs(gather):
 
     assert res is None
     assert cancelled == 2
+
+
+async def test_gather_concurrency_limit():
+    """Concurrency limits cap parallel execution."""
+    running = 0
+    max_running = 0
+
+    async def test(i: int) -> int:
+        nonlocal running, max_running
+        running += 1
+        max_running = max(max_running, running)
+        await sleep(0.01)
+        running -= 1
+        return i
+
+    assert await gather(*(test(i) for i in range(5)), concurrency_limit=2) == (
+        0,
+        1,
+        2,
+        3,
+        4,
+    )
+    assert max_running == 2
