@@ -104,6 +104,51 @@ async def test_result():
         task.result()
 
 
+async def test_concurrency_limit():
+    """TaskGroups can cap task concurrency."""
+    running = 0
+    max_running = 0
+
+    async def task(i: int) -> int:
+        nonlocal running, max_running
+        running += 1
+        max_running = max(max_running, running)
+        await sleep(0.01)
+        running -= 1
+        return i
+
+    async with TaskGroup(concurrency_limit=2) as tg:
+        tasks = [tg.create_task(task(i)) for i in range(5)]
+
+    assert [task.result() for task in tasks] == [0, 1, 2, 3, 4]
+    assert max_running == 2
+
+
+async def test_concurrency_limit_does_not_apply_to_background_tasks():
+    """Background tasks do not count towards the concurrency limit."""
+    started = False
+
+    async def blocked_task() -> None:
+        await sleep(0.05)
+
+    async def background_task() -> None:
+        nonlocal started
+        started = True
+
+    async with TaskGroup(concurrency_limit=1) as tg:
+        tg.create_task(blocked_task())
+        tg.create_background_task(background_task())
+        await sleep(0.01)
+
+    assert started
+
+
+def test_invalid_concurrency_limit() -> None:
+    """Test guards against nonsense concurrency limits."""
+    with raises(ValueError, match="concurrency_limit must be >= 1"):
+        TaskGroup(concurrency_limit=0)
+
+
 @pytest.mark.skipif(
     sys.version_info < (3, 12),
     reason="Eager task factory only available in Python 3.12+",

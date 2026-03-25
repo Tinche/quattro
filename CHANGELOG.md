@@ -14,6 +14,8 @@ The **third number** is for emergencies when we need to start branches for older
 
 ## Next (UNRELEASED)
 
+- {class}`TaskGroups <quattro.TaskGroup>` and {meth}`quattro.gather` now support `concurrency_limit` to limit the number of tasks that run in parallel.
+  ([#29](https://github.com/Tinche/quattro/pull/29))
 - {meth}`defer` now also supports [`enter_context`](https://docs.python.org/3/library/contextlib.html#contextlib.ExitStack.enter_context) for sync context managers.
   ([#23](https://github.com/Tinche/quattro/pull/23))
 - {meth}`defer` now properly preserves the coroutine function signature.

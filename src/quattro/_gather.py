@@ -20,7 +20,10 @@ _T6 = TypeVar("_T6")
 
 @overload
 async def gather(  # type: ignore[overload-overlap]
-    coro: Coroutine[Any, Any, _T1], *, return_exceptions: Literal[False] = False
+    coro: Coroutine[Any, Any, _T1],
+    *,
+    return_exceptions: Literal[False] = False,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1]: ...
 
 
@@ -30,6 +33,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future2: Coroutine[Any, Any, _T2],
     *,
     return_exceptions: Literal[False] = False,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1, _T2]: ...
 
 
@@ -40,6 +44,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future3: Coroutine[Any, Any, _T3],
     *,
     return_exceptions: Literal[False] = False,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1, _T2, _T3]: ...
 
 
@@ -51,6 +56,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future4: Coroutine[Any, Any, _T4],
     *,
     return_exceptions: Literal[False] = False,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1, _T2, _T3, _T4]: ...
 
 
@@ -63,6 +69,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future5: Coroutine[Any, Any, _T5],
     *,
     return_exceptions: Literal[False] = False,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1, _T2, _T3, _T4, _T5]: ...
 
 
@@ -76,6 +83,7 @@ async def gather(  # type: ignore[overload-overlap]
     __coro_or_future6: Coroutine[Any, Any, _T6],
     *,
     return_exceptions: Literal[False] = False,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1, _T2, _T3, _T4, _T5, _T6]: ...
 
 
@@ -83,12 +91,16 @@ async def gather(  # type: ignore[overload-overlap]
 async def gather(  # type: ignore[overload-overlap]
     *coros_or_futures: Coroutine[Any, Any, _T],
     return_exceptions: Literal[False] = False,
+    concurrency_limit: int | None = None,
 ) -> list[_T]: ...
 
 
 @overload
 async def gather(
-    __coro_or_future1: Coroutine[Any, Any, _T1], *, return_exceptions: bool
+    __coro_or_future1: Coroutine[Any, Any, _T1],
+    *,
+    return_exceptions: bool,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1 | BaseException]: ...
 
 
@@ -98,6 +110,7 @@ async def gather(
     __coro_or_future2: Coroutine[Any, Any, _T2],
     *,
     return_exceptions: bool,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1 | BaseException, _T2 | BaseException]: ...
 
 
@@ -108,6 +121,7 @@ async def gather(
     __coro_or_future3: Coroutine[Any, Any, _T3],
     *,
     return_exceptions: bool,
+    concurrency_limit: int | None = None,
 ) -> tuple[_T1 | BaseException, _T2 | BaseException, _T3 | BaseException]: ...
 
 
@@ -119,6 +133,7 @@ async def gather(
     __coro_or_future4: Coroutine[Any, Any, _T4],
     *,
     return_exceptions: bool,
+    concurrency_limit: int | None = None,
 ) -> tuple[
     _T1 | BaseException,
     _T2 | BaseException,
@@ -136,6 +151,7 @@ async def gather(
     __coro_or_future5: Coroutine[Any, Any, _T5],
     *,
     return_exceptions: bool,
+    concurrency_limit: int | None = None,
 ) -> tuple[
     _T1 | BaseException,
     _T2 | BaseException,
@@ -155,6 +171,7 @@ async def gather(
     __coro_or_future6: Coroutine[Any, Any, _T6],
     *,
     return_exceptions: bool,
+    concurrency_limit: int | None = None,
 ) -> tuple[
     _T1 | BaseException,
     _T2 | BaseException,
@@ -167,17 +184,25 @@ async def gather(
 
 @overload
 async def gather(
-    *coros_or_futures: Coroutine[Any, Any, _T], return_exceptions: bool
+    *coros_or_futures: Coroutine[Any, Any, _T],
+    return_exceptions: bool,
+    concurrency_limit: int | None = None,
 ) -> list[_T | BaseException]: ...
 
 
 async def gather(  # type: ignore[misc]
-    *coros: Coroutine, return_exceptions: bool = False
+    *coros: Coroutine,
+    return_exceptions: bool = False,
+    concurrency_limit: int | None = None,
 ) -> tuple:
     """A safer version of `asyncio.gather`.
 
     Uses a task group under the hood to not leak tasks in cases of errors
     in child tasks.
+
+    Args:
+        concurrency_limit: When provided, limit the number of parallel tasks to this
+            number.
 
     Notable differences are:
 
@@ -193,11 +218,13 @@ async def gather(  # type: ignore[misc]
     (See https://docs.python.org/3/library/asyncio-task.html#asyncio.gather)
 
     .. versionadded:: 23.1.0
+    .. versionchanged:: NEXT
+        Added the `concurrency_limit` parameter.
     """
     if not coros:
         return ()
 
-    async with TaskGroup() as tg:
+    async with TaskGroup(concurrency_limit=concurrency_limit) as tg:
         subtasks = [
             tg.create_task(coro if not return_exceptions else _wrap_coro(coro))
             for coro in coros

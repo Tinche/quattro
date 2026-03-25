@@ -15,8 +15,8 @@ Using _quattro_ gives you:
 
 - elegant context managers for **deadlines and cancellation**: `fail_after`, `fail_at`, `move_on_after` and `move_on_at`.
 - a `Deferrer` class and `defer` function to help with **indentation and resource cleanup**, like in Go.
-- a TaskGroup subclass with support for **background tasks**.
-- a **safer** `gather` implementation.
+- a TaskGroup subclass with support for [**background tasks**](https://quattro.threeofwands.com/en/latest/taskgroups.html#background-tasks) and concurrency limits.
+- a **safer** `gather` implementation, with concurrency limits.
 
 _quattro_ is influenced by structured concurrency concepts from the [Trio framework](https://trio.readthedocs.io/en/stable/).
 
