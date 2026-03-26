@@ -703,7 +703,7 @@ test = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
-    { name = "pytest-typing" },
+    { name = "pytest-typing", marker = "platform_python_implementation != 'PyPy'" },
 ]
 
 [package.metadata]
@@ -730,7 +730,7 @@ test = [
     { name = "mypy", specifier = ">=1.19.1" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-asyncio", specifier = ">=0.20.3" },
-    { name = "pytest-typing", specifier = ">=26.3.0" },
+    { name = "pytest-typing", marker = "platform_python_implementation != 'PyPy'", specifier = ">=26.3.0" },
 ]
 
 [[package]]

@@ -37,3 +37,23 @@ async def main() -> None:
     await run(2, "a")
     await run("bad", "a")  # error: [arg-type]
 ```
+
+## Deferrer.enable preserves the wrapped coroutine signature
+
+```python
+from quattro import Deferrer
+
+
+@Deferrer.enable
+async def run(defer: Deferrer, value: int, name: str) -> str:
+    reveal_type(defer)  # revealed: quattro._defer.Deferrer
+    return name * value
+
+
+reveal_type(run)  # revealed: def (value: builtins.int, name: builtins.str) -> typing.Coroutine[Any, Any, builtins.str]
+
+
+async def main() -> None:
+    await run(2, "a")
+    await run("bad", "a")  # error: [arg-type]
+```
