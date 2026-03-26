@@ -9,7 +9,7 @@ from asyncio import (
     get_running_loop,
 )
 from contextvars import ContextVar
-from typing import Final, Literal, Optional, Union
+from typing import Final, Literal
 
 from attrs import define, field
 
@@ -18,13 +18,13 @@ _is_311_or_later: Final = sys.version_info >= (3, 11)
 
 @define
 class CancelScope:
-    _deadline: Optional[float] = None
+    _deadline: float | None = None
 
     cancelled_caught: bool = field(default=False, init=False)
     """Whether the scope finished by cancellation or not."""
 
-    _current_task: Union[Task, None, Literal["done"]] = field(default=None, init=False)
-    _timeout_handler: Union[TimerHandle, Handle, None] = field(default=None, init=False)
+    _current_task: Task | Literal["done"] | None = field(default=None, init=False)
+    _timeout_handler: TimerHandle | Handle | None = field(default=None, init=False)
     _cancel_status: Literal["prequeued", "none", "called"] = field(
         default="none", init=False
     )
@@ -48,11 +48,11 @@ class CancelScope:
             self._timeout_handler = None
 
     @property
-    def deadline(self) -> Optional[float]:
+    def deadline(self) -> float | None:
         return self._deadline
 
     @deadline.setter
-    def deadline(self, value: Optional[float]) -> None:
+    def deadline(self, value: float | None) -> None:
         """Set the deadline to the given value, removing it if `None`.
 
         This will not trigger an actual cancellation until the scope is
@@ -148,8 +148,8 @@ class CancelScope:
             return self
 
         def __exit__(
-            self, exc_type: Optional[type[BaseException]], exc_val, _
-        ) -> Optional[bool]:
+            self, exc_type: type[BaseException] | None, exc_val, _
+        ) -> bool | None:
             if self._timeout_handler is not None:
                 self._timeout_handler.cancel()
                 self._timeout_handler = None

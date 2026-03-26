@@ -10,7 +10,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -19,7 +18,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dynamic = ["description", "version"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "attrs",
     "exceptiongroup; python_version < '3.11'",
@@ -30,11 +29,14 @@ readme = "README.md"
 
 [dependency-groups]
 test = [
+    "mypy>=1.19.1",
+    "pytest>=9.0.2",
     "pytest-asyncio>=0.20.3",
+    "pytest-typing>=26.3.0",
     "coverage",
 ]
 lint = [
-    "mypy>=0.991",
+    "mypy>=1.19.1",
     "ruff>=0.0.272",
 ]
 docs = [
@@ -55,8 +57,9 @@ ignore_missing_imports = true
 module = "exceptiongroup"
 ignore_missing_imports = true
 
-[tool.pytest.ini_options]
+[tool.pytest]
 asyncio_mode = "auto"
+typing_checkers = ["mypy"]
 
 [tool.coverage.run]
 parallel = true
