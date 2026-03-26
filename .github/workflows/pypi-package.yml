@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: hynek/build-and-inspect-python-package@c52c3a4710070b50470d903818a7b25115dcd076  # v2.13.0
+      - uses: hynek/build-and-inspect-python-package@f3d069d0f9a3c9169d1a483318bb0e09876a6fd6  # v2.15.0
 
   # Upload to Test PyPI on every commit on main.
   release-test-pypi:
