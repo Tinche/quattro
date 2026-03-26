@@ -3,7 +3,7 @@
 [![Documentation](https://img.shields.io/badge/Docs-Read%20The%20Docs-black)](https://quattro.threeofwands.com)
 [![License: Apache2](https://img.shields.io/badge/license-Apache2-C06524)](https://github.com/Tinche/uapi/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/quattro.svg)](https://pypi.python.org/pypi/quattro)
-[![Build](https://github.com/Tinche/quattro/workflows/CI/badge.svg?branch=main)](https://github.com/Tinche/quattro/actions?workflow=CI)
+[![Build](https://github.com/Tinche/quattro/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Tinche/quattro/actions/workflows/ci.yml)
 [![Supported Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FTinche%2Fquattro%2Fmain%2Fpyproject.toml)](https://github.com/Tinche/quattro)
 [![Coverage](https://img.shields.io/badge/Coverage-100%25-green)](https://github.com/Tinche/quattro/actions/workflows/ci.yml)
 
