@@ -22,6 +22,7 @@ The **third number** is for emergencies when we need to start branches for older
   ([#23](https://github.com/Tinche/quattro/pull/23))
 - Add support for Python 3.14.
   ([#27](https://github.com/Tinche/quattro/pull/27))
+- Drop support for Python 3.9 and introduce `pytest-typing`-based type tests.
 
 ## 25.2.0 (2025-03-06)
 

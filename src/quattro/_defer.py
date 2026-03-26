@@ -1,4 +1,3 @@
-import sys
 from collections.abc import Awaitable, Callable
 from contextlib import (
     AbstractAsyncContextManager,
@@ -7,12 +6,7 @@ from contextlib import (
 )
 from contextvars import ContextVar
 from functools import wraps
-from typing import Final, TypeVar, Union, overload
-
-if sys.version_info < (3, 10):
-    from typing_extensions import Concatenate, ParamSpec
-else:
-    from typing import Concatenate, ParamSpec
+from typing import Concatenate, Final, ParamSpec, TypeVar, overload
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -137,7 +131,7 @@ class Deferrer(AsyncExitStack):
         return inner
 
 
-_ACTIVE_DEFER: Final[ContextVar[Union[Deferrer, None]]] = ContextVar(
+_ACTIVE_DEFER: Final[ContextVar[Deferrer | None]] = ContextVar(
     "_ACTIVE_DEFER", default=None
 )
 
