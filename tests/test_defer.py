@@ -234,3 +234,30 @@ async def test_defer_wraps() -> None:
     coro = defer.enable(coro)
 
     assert signature(coro) == signature(old_coro)
+
+
+async def test_deferrer_enable_method_self_first() -> None:
+    """The `Deferrer.enable` decorator supports methods with `self` first."""
+
+    class Greeter:
+        @Deferrer.enable
+        async def run(self, defer: Deferrer, value: int, name: str) -> str:
+            assert isinstance(self, Greeter)
+            assert isinstance(defer, Deferrer)
+            return name * value
+
+    assert await Greeter().run(2, "a") == "aa"
+
+
+async def test_deferrer_enable_method_unbound_access() -> None:
+    """The `Deferrer.enable` descriptor supports class attribute access."""
+
+    class Greeter:
+        @Deferrer.enable
+        async def run(self, defer: Deferrer, value: int, name: str) -> str:
+            assert isinstance(self, Greeter)
+            assert isinstance(defer, Deferrer)
+            return name * value
+
+    greeter = Greeter()
+    assert await Greeter.run(greeter, 2, "a") == "aa"

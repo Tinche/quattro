@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Awaitable, Callable
 from contextlib import (
     AbstractAsyncContextManager,
@@ -5,17 +7,75 @@ from contextlib import (
     AsyncExitStack,
 )
 from contextvars import ContextVar
-from functools import wraps
-from typing import Concatenate, Final, ParamSpec, TypeVar, overload
+from functools import update_wrapper, wraps
+from typing import TYPE_CHECKING, Concatenate, Final, ParamSpec, TypeVar, cast, overload
+
+if TYPE_CHECKING:
+    from typing import Protocol
 
 P = ParamSpec("P")
 T = TypeVar("T")
+S = TypeVar("S")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
 T4 = TypeVar("T4")
 T5 = TypeVar("T5")
 T6 = TypeVar("T6")
 Aw = TypeVar("Aw", bound=Awaitable)
+
+
+if TYPE_CHECKING:
+    S_contra = TypeVar("S_contra", contravariant=True)
+    Aw_co = TypeVar("Aw_co", bound=Awaitable, covariant=True)
+
+    class _DeferrerMethodDecorator(Protocol[S_contra, P, Aw_co]):
+        @overload
+        def __get__(
+            self, instance: None, owner: type[S_contra], /
+        ) -> Callable[Concatenate[S_contra, P], Aw_co]: ...
+
+        @overload
+        def __get__(
+            self, instance: S_contra, owner: type[S_contra] | None = None, /
+        ) -> Callable[P, Aw_co]: ...
+
+        def __call__(
+            self, self_: S_contra, /, *args: P.args, **kwargs: P.kwargs
+        ) -> Aw_co: ...
+
+
+class _DeferrerDecorator:
+    def __init__(self, cls, function):
+        self._cls = cls
+        self._function = function
+        update_wrapper(self, function)
+
+    def __call__(self, *args, **kwargs):
+        async def inner():
+            defer = self._cls()
+            async with defer:
+                return await self._function(defer, *args, **kwargs)
+
+        return inner()
+
+    def __get__(self, instance, owner=None):
+        bound = self._function.__get__(instance, owner)
+
+        if instance is None:
+
+            async def unbound(receiver, /, *args, **kwargs):
+                defer = self._cls()
+                async with defer:
+                    return await bound(receiver, defer, *args, **kwargs)
+
+            return cast("Callable[..., object]", wraps(bound)(unbound))
+
+        async def inner(*args, **kwargs):
+            defer = self._cls()
+            async with defer:
+                return await bound(defer, *args, **kwargs)
+
+        return cast("Callable[..., object]", wraps(bound)(inner))
 
 
 class Deferrer(AsyncExitStack):
@@ -114,21 +174,25 @@ class Deferrer(AsyncExitStack):
         return tuple([await self.enter_async_context(cm) for cm in cms])
 
     @classmethod
+    @overload
     def enable(
-        cls, function: "Callable[Concatenate[Deferrer, P], Aw]"
-    ) -> Callable[P, Aw]:
+        cls, function: Callable[Concatenate[Deferrer, P], Aw]
+    ) -> Callable[P, Aw]: ...
+
+    @classmethod
+    @overload
+    def enable(
+        cls, function: Callable[Concatenate[S, Deferrer, P], Aw]
+    ) -> _DeferrerMethodDecorator[S, P, Aw]: ...
+
+    @classmethod
+    def enable(cls, function):
         """A decorator to be applied to a coroutine function, enabling the use of Defer.
 
         The coroutine function should receive an instance of `Defer` as its first
         positional argument; this will be provided by `Defer`.
         """
-
-        async def inner(*args, **kwargs):
-            defer = cls()
-            async with defer:
-                return await function(defer, *args, **kwargs)
-
-        return inner
+        return _DeferrerDecorator(cls, function)
 
 
 _ACTIVE_DEFER: Final[ContextVar[Deferrer | None]] = ContextVar(

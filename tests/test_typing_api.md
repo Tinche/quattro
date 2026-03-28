@@ -57,3 +57,25 @@ async def main() -> None:
     await run(2, "a")
     await run("bad", "a")  # error: [arg-type]
 ```
+
+## Deferrer.enable preserves self-first method binding
+
+```python
+from quattro import Deferrer
+
+
+class Greeter:
+    @Deferrer.enable
+    async def run(self, defer: Deferrer, value: int, name: str) -> str:
+        return name * value
+
+
+reveal_type(Greeter.run)  # revealed: def (test_snippet.Greeter, value: builtins.int, name: builtins.str) -> typing.Coroutine[Any, Any, builtins.str]
+reveal_type(Greeter().run)  # revealed: def (value: builtins.int, name: builtins.str) -> typing.Coroutine[Any, Any, builtins.str]
+
+
+async def main() -> None:
+    greeter = Greeter()
+    await greeter.run(2, "a")
+    await greeter.run("bad", "a")  # error: [arg-type]
+```
