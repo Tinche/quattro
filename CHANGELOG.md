@@ -20,6 +20,8 @@ The **third number** is for emergencies when we need to start branches for older
   ([#23](https://github.com/Tinche/quattro/pull/23))
 - {meth}`defer` now properly preserves the coroutine function signature.
   ([#23](https://github.com/Tinche/quattro/pull/23))
+- {class}`Deferrer` now properly works on methods.
+  ([#33](https://github.com/Tinche/quattro/pull/33))
 - Add support for Python 3.14.
   ([#27](https://github.com/Tinche/quattro/pull/27))
 - Drop support for Python 3.9 and introduce `pytest-typing`-based type tests.

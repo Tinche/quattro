@@ -6,6 +6,10 @@ lint:
 	uv run -p python3.13 --group lint ruff format --check src tests docs/conf.py
 	uv run -p python3.13 --group lint --group test mypy src tests 
 
+fix:
+    uv run -p python3.13 --group lint ruff check --fix src/ tests
+    uv run -p python3.13 --group lint ruff format src tests docs/conf.py
+
 test *args="-x --ff tests":
     uv run {{ if python != '' { '-p ' + python } else { '' } }} --all-extras --group test pytest {{args}}
 
@@ -32,7 +36,7 @@ covall:
     just python=pypy3.10 covcleanup=false cov
     uv run coverage combine
     uv run coverage report
-    @rm .coverage*
+    rm .coverage*
 
 docs:
 	cd docs && make html
