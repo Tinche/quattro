@@ -27,7 +27,7 @@ class TaskGroup(_TaskGroup):
             concurrency_limit: When provided, use a semaphore to limit the number of
                 non-background tasks that run in parallel.
 
-        .. versionchanged:: NEXT
+        .. versionchanged:: 26.1.0
            Added the `concurrency_limit` parameter.
         """
         _TaskGroup.__init__(self)

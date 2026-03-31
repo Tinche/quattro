@@ -12,7 +12,7 @@ The **third number** is for emergencies when we need to start branches for older
 
 <!-- changelog follows -->
 
-## Next (UNRELEASED)
+## 26.1.0 (2026-03-31)
 
 - {class}`TaskGroups <quattro.TaskGroup>` and {meth}`quattro.gather` now support `concurrency_limit` to limit the number of tasks that run in parallel.
   ([#29](https://github.com/Tinche/quattro/pull/29))

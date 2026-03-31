@@ -218,7 +218,7 @@ async def gather(  # type: ignore[misc]
     (See https://docs.python.org/3/library/asyncio-task.html#asyncio.gather)
 
     .. versionadded:: 23.1.0
-    .. versionchanged:: NEXT
+    .. versionchanged:: 26.1.0
         Added the `concurrency_limit` parameter.
     """
     if not coros:
